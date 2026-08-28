@@ -1,0 +1,416 @@
+/* ==========================================================================
+   MECCAL — WIREFRAME FUNCIONAL (FASE 1)
+   Propósito: validar estrutura, hierarquia de conteúdo e copy.
+   Sem identidade visual — isso é escopo da Fase 2.
+   ========================================================================== */
+
+:root{
+  --gray-900:#1f1f1f;
+  --gray-700:#4a4a4a;
+  --gray-500:#8a8a8a;
+  --gray-300:#c9c9c9;
+  --gray-200:#e2e2e2;
+  --gray-100:#f2f2f2;
+  --white:#ffffff;
+  --accent:#6b6b6b; /* usado só p/ diferenciar CTA no wireframe */
+  --maxw:1120px;
+  --radius:2px;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  color:var(--gray-900);
+  background:var(--white);
+  line-height:1.5;
+}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+ul{margin:0;padding:0;list-style:none;}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+
+/* ---------- Wireframe placeholder blocks ---------- */
+.ph{
+  background:repeating-linear-gradient(
+    45deg, var(--gray-100), var(--gray-100) 10px, var(--white) 10px, var(--white) 20px
+  );
+  border:1px dashed var(--gray-500);
+  color:var(--gray-500);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:12px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  min-height:120px;
+  padding:12px;
+}
+
+.tag-note{
+  display:inline-block;
+  background:var(--gray-900);
+  color:var(--white);
+  font-size:10px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding:3px 8px;
+  border-radius:2px;
+  margin-bottom:8px;
+}
+
+/* ---------- Header ---------- */
+.topbar{
+  background:var(--gray-900);
+  color:var(--gray-200);
+  font-size:12.5px;
+}
+.topbar .wrap{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding-top:6px;
+  padding-bottom:6px;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.topbar a{color:var(--gray-200);}
+
+header.site-header{
+  border-bottom:1px solid var(--gray-200);
+  position:sticky;
+  top:0;
+  background:var(--white);
+  z-index:50;
+}
+.header-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 0;
+}
+.logo-ph{
+  width:170px;
+  height:44px;
+  font-size:11px;
+}
+nav.mainnav ul{
+  display:flex;
+  gap:28px;
+}
+nav.mainnav a{
+  font-size:13.5px;
+  font-weight:bold;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  color:var(--gray-700);
+  padding:6px 0;
+  border-bottom:2px solid transparent;
+}
+nav.mainnav a.active,
+nav.mainnav a:hover{
+  color:var(--gray-900);
+  border-bottom-color:var(--gray-900);
+}
+nav.mainnav a.disabled{
+  color:var(--gray-300);
+  cursor:default;
+  pointer-events:none;
+}
+nav.mainnav a.disabled .soon{
+  display:block;
+  font-size:9px;
+  text-transform:none;
+  font-weight:normal;
+  letter-spacing:0;
+}
+.nav-toggle{
+  display:none;
+  background:none;
+  border:1px solid var(--gray-300);
+  padding:8px 10px;
+  font-size:13px;
+}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-block;
+  padding:13px 26px;
+  font-size:13.5px;
+  font-weight:bold;
+  letter-spacing:.03em;
+  text-transform:uppercase;
+  border:1px solid var(--gray-900);
+  border-radius:var(--radius);
+  cursor:pointer;
+}
+.btn-primary{
+  background:var(--gray-900);
+  color:var(--white);
+}
+.btn-primary:hover{background:var(--gray-700);}
+.btn-outline{
+  background:transparent;
+  color:var(--gray-900);
+}
+.btn-outline:hover{background:var(--gray-100);}
+.btn-whats{
+  background:var(--gray-900);
+  color:var(--white);
+  border-color:var(--gray-900);
+}
+
+/* ---------- Sections ---------- */
+section{padding:64px 0;}
+.section-alt{background:var(--gray-100);}
+.eyebrow{
+  font-size:11.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--gray-500);
+  margin-bottom:10px;
+  font-weight:bold;
+}
+h1,h2,h3{
+  margin:0 0 14px 0;
+  font-weight:800;
+  color:var(--gray-900);
+  line-height:1.2;
+}
+h1{font-size:38px;}
+h2{font-size:27px;}
+h3{font-size:17px;}
+p{color:var(--gray-700);margin:0 0 14px 0;}
+.lead{font-size:17px;color:var(--gray-700);}
+.divider{
+  width:56px;height:3px;background:var(--gray-900);margin:14px 0 22px;
+}
+.center{text-align:center;}
+.center .divider{margin-left:auto;margin-right:auto;}
+
+/* ---------- Hero ---------- */
+.hero{
+  padding:70px 0 60px;
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:48px;
+  align-items:center;
+}
+.hero .kicker{
+  font-size:13px;
+  font-weight:bold;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--gray-500);
+  margin-bottom:12px;
+}
+.hero h1{margin-bottom:16px;}
+.hero-ctas{display:flex;gap:14px;margin-top:26px;flex-wrap:wrap;}
+.hero .ph{min-height:320px;}
+
+/* ---------- Grids ---------- */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;}
+
+/* ---------- Diferenciais ---------- */
+.dif-card{
+  border:1px solid var(--gray-200);
+  padding:26px 22px;
+  border-radius:var(--radius);
+}
+.dif-num{
+  font-size:12px;color:var(--gray-500);font-weight:bold;margin-bottom:10px;
+}
+
+/* ---------- Destaques / Promoção (placeholder Fase 3) ---------- */
+.destaque-card{
+  border:1px solid var(--gray-200);
+  border-radius:var(--radius);
+  overflow:hidden;
+  background:var(--white);
+}
+.destaque-card .ph{min-height:150px;}
+.destaque-body{padding:16px;}
+.selo{
+  display:inline-block;
+  font-size:10px;
+  font-weight:bold;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  padding:4px 9px;
+  border-radius:2px;
+  margin-bottom:8px;
+  border:1px solid var(--gray-700);
+  color:var(--gray-700);
+}
+.selo-promocao{background:var(--gray-900);color:var(--white);border-color:var(--gray-900);}
+.selo-seminovo{background:var(--white);color:var(--gray-900);}
+.destaque-body h3{margin-bottom:4px;}
+.destaque-body .fam{font-size:11.5px;color:var(--gray-500);margin-bottom:10px;}
+.destaque-cta{
+  font-size:12.5px;font-weight:bold;text-transform:uppercase;
+  border-bottom:1px solid var(--gray-900);
+  display:inline-block;
+}
+
+/* ---------- Depoimento / geracional ---------- */
+.quote-block{
+  border-left:3px solid var(--gray-900);
+  padding:8px 0 8px 26px;
+  margin:0;
+}
+.quote-block p{font-size:19px;color:var(--gray-900);font-style:italic;margin-bottom:10px;}
+.quote-block cite{font-style:normal;font-size:13px;color:var(--gray-500);}
+
+/* ---------- Clientes ---------- */
+.clientes-strip{
+  display:flex;
+  gap:20px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.cliente-logo{
+  width:150px;height:70px;font-size:10px;
+}
+
+/* ---------- Timeline (Empresa) ---------- */
+.timeline{
+  border-left:2px solid var(--gray-300);
+  margin-left:8px;
+}
+.timeline-item{
+  position:relative;
+  padding:0 0 40px 30px;
+}
+.timeline-item::before{
+  content:"";
+  position:absolute;
+  left:-7px;top:2px;
+  width:12px;height:12px;
+  border-radius:50%;
+  background:var(--gray-900);
+}
+.timeline-item .yr{
+  font-size:12px;font-weight:bold;color:var(--gray-500);
+  text-transform:uppercase;margin-bottom:4px;
+}
+
+/* ---------- CTA final ---------- */
+.cta-final{
+  background:var(--gray-900);
+  color:var(--white);
+  text-align:center;
+}
+.cta-final h2{color:var(--white);}
+.cta-final p{color:var(--gray-300);}
+.cta-final .btn-outline{
+  border-color:var(--white);
+  color:var(--white);
+}
+.cta-final .btn-outline:hover{background:rgba(255,255,255,.08);}
+
+/* ---------- Formulário ---------- */
+.form-field{margin-bottom:16px;}
+.form-field label{
+  display:block;font-size:12.5px;font-weight:bold;
+  text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;color:var(--gray-700);
+}
+.form-field input,
+.form-field textarea{
+  width:100%;
+  border:1px solid var(--gray-300);
+  border-radius:var(--radius);
+  padding:12px 14px;
+  font-family:inherit;
+  font-size:14px;
+  background:var(--white);
+}
+.form-field textarea{min-height:130px;resize:vertical;}
+
+/* ---------- Contato info ---------- */
+.info-list li{
+  padding:14px 0;
+  border-bottom:1px solid var(--gray-200);
+}
+.info-list .lbl{
+  font-size:11px;font-weight:bold;text-transform:uppercase;
+  color:var(--gray-500);letter-spacing:.05em;margin-bottom:3px;
+}
+
+/* ---------- Footer ---------- */
+footer{
+  background:var(--gray-900);
+  color:var(--gray-300);
+  padding:48px 0 22px;
+  font-size:13.5px;
+}
+footer h3{color:var(--white);font-size:14px;margin-bottom:14px;}
+footer .grid-3{gap:36px;margin-bottom:32px;}
+footer a:hover{color:var(--white);}
+.footer-bottom{
+  border-top:1px solid #3a3a3a;
+  padding-top:18px;
+  font-size:12px;
+  color:var(--gray-500);
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+/* ---------- Whatsapp float (placeholder) ---------- */
+.whats-float{
+  position:fixed;
+  bottom:22px;right:22px;
+  width:54px;height:54px;
+  border-radius:50%;
+  background:var(--gray-900);
+  color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;text-align:center;
+  z-index:60;
+  border:none;
+  cursor:pointer;
+}
+
+/* ---------- Wireframe banner ---------- */
+.wf-banner{
+  background:#fff3cd;
+  color:#5c4a1a;
+  font-size:12.5px;
+  text-align:center;
+  padding:8px 16px;
+  border-bottom:1px solid #e5d29a;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px){
+  .hero-grid,.grid-2{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr 1fr;}
+  .grid-4{grid-template-columns:1fr 1fr;}
+  nav.mainnav{
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:var(--white);
+    padding:90px 24px 24px;
+    transform:translateX(100%);
+    transition:transform .25s ease;
+    z-index:40;
+  }
+  nav.mainnav.open{transform:translateX(0);}
+  nav.mainnav ul{flex-direction:column;gap:4px;}
+  nav.mainnav a{display:block;padding:14px 0;font-size:16px;border-bottom:1px solid var(--gray-200);}
+  .nav-toggle{display:block;}
+  h1{font-size:28px;}
+  h2{font-size:22px;}
+}
+@media (max-width: 560px){
+  .grid-3,.grid-4{grid-template-columns:1fr;}
+  .topbar .wrap{flex-direction:column;align-items:flex-start;}
+}
