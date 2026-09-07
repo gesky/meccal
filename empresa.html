@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Meccal — Wireframe Fase 1 | Empresa</title>
+<title>Meccal — Empresa</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div class="topbar">
   <div class="wrap">
-    <span>Entre em contato: (14) 3201-1522 / 0800 203 1522</span>
+    <span>(14) 3201-1522 / 0800 203 1522</span>
     <a href="mailto:contato@meccal.com.br">contato@meccal.com.br</a>
   </div>
 </div>
 
 <header class="site-header">
   <div class="wrap header-inner">
-    <div class="ph logo-ph">LOGO MECCAL</div>
+    <a href="index.html"><img src="img/meccal-logo.png" alt="Meccal — Tecnologia da Nova Geração" class="logo-img"></a>
     <nav class="mainnav">
       <ul>
         <li><a href="index.html">Home</a></li>
@@ -25,6 +25,7 @@
         <li><a href="#" class="disabled">Máquinas<span class="soon">(Fase 3)</span></a></li>
         <li><a href="#" class="disabled">Produtos<span class="soon">(Fase 3)</span></a></li>
         <li><a href="contato.html">Contato</a></li>
+        <li><a href="contato.html" class="nav-cta">Falar com a Meccal</a></li>
       </ul>
     </nav>
     <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">MENU</button>
@@ -32,34 +33,41 @@
 </header>
 
 <!-- HERO EMPRESA -->
-<section class="hero" style="padding-bottom:40px;">
-  <div class="wrap">
+<section class="hero" style="padding-bottom:20px;">
+  <div class="blob" style="width:480px;height:480px;background:var(--blue-soft);top:-200px;right:-140px;"></div>
+  <div class="wrap reveal">
     <div class="eyebrow">A Meccal</div>
-    <h1 style="max-width:820px;">Fazemos máquina do jeito que se faz confiança: uma peça de cada vez, há 52 anos.</h1>
+    <h1 style="max-width:820px;">Fazemos máquina do jeito que se faz confiança: uma peça de cada vez, há <span class="accent">52 anos</span>.</h1>
     <p class="lead" style="max-width:680px;">Desde 1974, projetando e fabricando em Bauru/SP máquinas para corte, endireitamento e conformação de arame.</p>
   </div>
 </section>
 
 <!-- HISTÓRIA -->
-<section>
+<section style="padding-top:20px;">
   <div class="wrap grid-2">
-    <div>
+    <div class="reveal">
       <div class="eyebrow">Como começou</div>
       <h2>Uma fábrica pensada para durar tanto quanto as máquinas que produz.</h2>
       <p>A Meccal nasceu em Bauru com um propósito direto: fabricar máquinas de corte, endireitamento e conformação de arame com a mesma robustez que a indústria brasileira exige no dia a dia — sem depender de peça importada, sem depender de terceiro.</p>
       <p>Décadas depois, esse propósito não mudou. O que mudou foi a tecnologia embarcada em cada máquina — e o tamanho da confiança que carregamos com cada cliente.</p>
     </div>
-    <div class="ph" style="min-height:260px;">FOTO HISTÓRICA / GALPÃO DE PRODUÇÃO</div>
+    <div class="reveal reveal-2">
+      <div class="ph" style="min-height:280px;">
+        <span class="ph-icon">▢</span>
+        <span class="ph-label">Foto histórica / galpão de produção</span>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- LINHA DO TEMPO GERACIONAL -->
 <section class="section-alt">
   <div class="wrap">
-    <div class="eyebrow">O que nos diferencia</div>
-    <h2>Clientes que já estão na terceira geração comprando da Meccal</h2>
-    <div class="divider"></div>
-    <div class="timeline" style="margin-top:36px;max-width:640px;">
+    <div class="reveal">
+      <div class="eyebrow">O que nos diferencia</div>
+      <h2>Clientes que já estão na terceira geração comprando da Meccal</h2>
+    </div>
+    <div class="timeline reveal reveal-2" style="margin-top:44px;">
       <div class="timeline-item">
         <div class="yr">1ª geração</div>
         <h3>O avô</h3>
@@ -82,8 +90,13 @@
 <!-- FABRICAÇÃO PRÓPRIA -->
 <section>
   <div class="wrap grid-2">
-    <div class="ph" style="min-height:260px;">FOTO — LINHA DE MONTAGEM / EQUIPE TÉCNICA</div>
-    <div>
+    <div class="reveal">
+      <div class="ph" style="min-height:280px;">
+        <span class="ph-icon">▢</span>
+        <span class="ph-label">Foto — linha de montagem / equipe técnica</span>
+      </div>
+    </div>
+    <div class="reveal reveal-2">
       <div class="eyebrow">Fabricação própria</div>
       <h2>Tudo o que leva o nome Meccal foi feito aqui dentro.</h2>
       <p>Projetamos, usinamos, soldamos, montamos e testamos cada máquina na nossa própria planta em Bauru. Isso significa controle sobre cada etapa — e um time técnico que conhece a máquina de dentro pra fora quando você precisa de suporte.</p>
@@ -92,33 +105,42 @@
   </div>
 </section>
 
-<!-- SEMINOVOS (menção breve — não é página própria nesta fase) -->
-<section class="section-alt">
-  <div class="wrap center">
-    <div class="eyebrow">Programa de trocas</div>
-    <h2 style="max-width:640px;margin-left:auto;margin-right:auto;">Sua máquina antiga também tem valor pra gente.</h2>
-    <p class="lead" style="max-width:600px;margin:0 auto 26px;">Compramos, reformamos e revendemos máquinas usadas — uma forma prática de você renovar seu parque de equipamentos. O catálogo completo de seminovos estará disponível em breve nesta seção.</p>
-    <a href="contato.html" class="btn btn-outline">Falar sobre seminovos</a>
+<!-- SEMINOVOS -->
+<section>
+  <div class="cta-final section-blue reveal" style="background:linear-gradient(135deg,var(--blue) 0%, #024f83 100%);">
+    <div class="blob" style="width:380px;height:380px;background:rgba(255,255,255,.12);top:-150px;left:-90px;"></div>
+    <div class="wrap center" style="padding:76px 32px;">
+      <div class="eyebrow">Programa de trocas</div>
+      <h2 style="max-width:640px;margin-left:auto;margin-right:auto;">Sua máquina antiga também tem valor pra gente.</h2>
+      <p class="lead" style="max-width:600px;margin:0 auto 30px;">Compramos, reformamos e revendemos máquinas usadas — uma forma prática de você renovar seu parque de equipamentos. O catálogo completo de seminovos estará disponível em breve nesta seção.</p>
+      <a href="contato.html" class="btn btn-outline-white">Falar sobre seminovos</a>
+    </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
+    <img src="img/meccal-logo.png" alt="Meccal" class="logo-img">
     <div class="grid-3">
       <div>
         <h3>Localização</h3>
-        <p style="color:var(--gray-300);">Av. Lúcio Luciano, nº 2-33<br>Pq. Bauru — Bauru/SP<br>CEP 17031-600</p>
+        <p style="color:#b7b7b7;">Av. Lúcio Luciano, nº 2-33<br>Pq. Bauru — Bauru/SP<br>CEP 17031-600</p>
       </div>
       <div>
         <h3>Contato</h3>
-        <p style="color:var(--gray-300);">
+        <p style="color:#b7b7b7;">
           <a href="mailto:contato@meccal.com.br">contato@meccal.com.br</a><br>
           <a href="mailto:vendas@meccal.com.br">vendas@meccal.com.br</a>
         </p>
+        <div class="social-row">
+          <a class="social-link" href="https://www.linkedin.com/company/meccal-maquinas/home/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 512 512"><path d="m256 0c-141.363281 0-256 114.636719-256 256s114.636719 256 256 256 256-114.636719 256-256-114.636719-256-256-256zm-74.390625 387h-62.347656v-187.574219h62.347656zm-31.171875-213.1875h-.40625c-20.921875 0-34.453125-14.402344-34.453125-32.402344 0-18.40625 13.945313-32.410156 35.273437-32.410156 21.328126 0 34.453126 14.003906 34.859376 32.410156 0 18-13.53125 32.402344-35.273438 32.402344zm255.984375 213.1875h-62.339844v-100.347656c0-25.21875-9.027343-42.417969-31.585937-42.417969-17.222656 0-27.480469 11.601563-31.988282 22.800781-1.648437 4.007813-2.050781 9.609375-2.050781 15.214844v104.75h-62.34375s.816407-169.976562 0-187.574219h62.34375v26.558594c8.285157-12.78125 23.109375-30.960937 56.1875-30.960937 41.019531 0 71.777344 26.808593 71.777344 84.421874zm0 0"/></svg></a>
+          <a class="social-link" href="https://www.instagram.com/meccalmaquinas/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 512 512"><circle cx="256" cy="256" r="52.5"/><path d="m256 6c-138.071 0-250 111.929-250 250s111.929 250 250 250 250-111.929 250-250-111.929-250-250-250zm154.458 313.54c-1.2 23.768-7.879 47.206-25.2 64.343-17.489 17.3-41.038 23.746-65.035 24.934h-128.445c-24-1.188-47.546-7.63-65.035-24.934-17.322-17.137-24-40.575-25.2-64.343v-127.08c1.2-23.768 7.879-47.206 25.2-64.344 17.489-17.3 41.038-23.746 65.035-24.933h128.444c24 1.187 47.546 7.63 65.035 24.933 17.322 17.138 24 40.576 25.2 64.344z"/><path d="m318.6 132.138c-31.286-.858-93.906-.858-125.192 0-16.281.447-34.738 4.5-46.338 16.89-12.054 12.879-16.609 28.439-17.071 45.846-.812 30.552 0 122.252 0 122.252.529 17.405 5.017 32.967 17.071 45.846 11.6 12.394 30.057 16.443 46.338 16.89 31.286.858 93.906.858 125.192 0 16.281-.447 34.738-4.5 46.338-16.89 12.054-12.879 16.609-28.439 17.071-45.846v-122.252c-.462-17.407-5.017-32.967-17.071-45.846-11.604-12.394-30.061-16.443-46.338-16.89zm-62.6 205.237a81.375 81.375 0 1 1 81.375-81.375 81.375 81.375 0 0 1 -81.375 81.375zm81.721-145.953a16.275 16.275 0 1 1 16.279-16.275 16.275 16.275 0 0 1 -16.279 16.275z"/></svg></a>
+          <a class="social-link" href="https://www.facebook.com/meccalmaquinasindustriais" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 512 512"><path d="m255.1824 7.7579q69.23.79 125.0851 34.0293a249.7343 249.7343 0 0 1 88.8909 89.4346q33.0371 56.1914 33.8244 125.8428-1.962 95.3-60.1167 162.791c-38.77 44.9941-88.425 72.83-139.8274 83.5009v-178.1275h48.5969l10.99-70h-73.5869v-45.8481a39.844 39.844 0 0 1 8.4739-26.3232q8.8275-11.2527 31.0895-11.8287h44.4366v-61.3184q-.9563-.3077-18.15-2.4336a360.7434 360.7434 0 0 0 -39.16-2.4336q-44.4328.205-70.2811 25.0674-25.8488 24.8554-26.4085 71.9209v53.1973h-56v70h56v178.1275c-63.1149-10.6709-112.77-38.5068-151.54-83.5009s-58.808-99.2578-60.1162-162.791q.7851-69.6546 33.8236-125.8428a249.7389 249.7389 0 0 1 88.8917-89.4346q55.8534-33.2329 125.0842-34.0293z" fill-rule="evenodd"/></svg></a>
+        </div>
       </div>
       <div>
         <h3>Telefones</h3>
-        <p style="color:var(--gray-300);">(14) 3201-1522<br>(14) 3203-1522<br>0800 203 1522</p>
+        <p style="color:#b7b7b7;">(14) 3201-1522<br>(14) 3203-1522<br>0800 203 1522</p>
       </div>
     </div>
     <div class="footer-bottom">
@@ -127,7 +149,9 @@
   </div>
 </footer>
 
-<button class="whats-float" title="WhatsApp (placeholder)">WHATS<br>APP</button>
+<a class="whats-float" href="https://api.whatsapp.com/send?phone=5514997758195&text=Ol%C3%A1,%20contato%20do%20site%20Meccal.com.br" target="_blank" rel="noopener" title="Fale no WhatsApp" aria-label="WhatsApp">
+  <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.001 3C9.096 3 3.5 8.596 3.5 15.5c0 2.44.71 4.712 1.933 6.627L3.5 29l7.06-1.867a12.42 12.42 0 0 0 5.44 1.25c6.905 0 12.5-5.596 12.5-12.5S22.906 3 16.001 3zm0 22.7c-1.83 0-3.62-.49-5.19-1.42l-.372-.222-4.19 1.107 1.12-4.083-.243-.39a10.19 10.19 0 0 1-1.564-5.192c0-5.643 4.594-10.237 10.239-10.237 5.644 0 10.238 4.594 10.238 10.237 0 5.645-4.594 10.2-10.038 10.2zm5.61-7.66c-.307-.154-1.814-.895-2.096-.997-.281-.103-.486-.154-.69.153-.205.308-.79.997-.968 1.203-.179.205-.357.23-.664.077-.307-.154-1.296-.478-2.47-1.524-.913-.814-1.529-1.82-1.708-2.127-.179-.307-.019-.473.135-.626.138-.138.307-.358.46-.537.154-.18.205-.308.307-.513.103-.205.052-.384-.026-.538-.077-.153-.69-1.663-.945-2.278-.249-.598-.502-.517-.69-.527l-.588-.01c-.205 0-.538.077-.82.384-.281.307-1.074 1.05-1.074 2.56 0 1.51 1.1 2.968 1.253 3.174.154.205 2.166 3.31 5.25 4.64.734.317 1.306.506 1.752.648.736.234 1.406.2 1.936.121.59-.088 1.814-.741 2.07-1.457.256-.716.256-1.33.18-1.457-.077-.128-.282-.205-.59-.359z"/></svg>
+</a>
 
 <script src="js/main.js"></script>
 </body>
