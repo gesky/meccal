@@ -1,5 +1,37 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+  // Smooth scroll (Lenis) — inertia-based scrolling for a more fluid feel.
+  // Skipped entirely if the user prefers reduced motion, or if the library
+  // failed to load (site still works perfectly with normal scroll).
+  var reduceMotionGlobal = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduceMotionGlobal && typeof Lenis !== 'undefined') {
+    var lenis = new Lenis({
+      duration: 1.05,
+      easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+      smoothWheel: true,
+      touchMultiplier: 1.4
+    });
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    // Make in-page anchor links (e.g. "Ver máquinas em destaque") use Lenis too
+    document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var id = link.getAttribute('href');
+        if (id.length > 1) {
+          var target = document.querySelector(id);
+          if (target) {
+            e.preventDefault();
+            lenis.scrollTo(target, { offset: -100 });
+          }
+        }
+      });
+    });
+  }
+
   function initReveal() {
     var reveals = document.querySelectorAll('.reveal');
     if ('IntersectionObserver' in window && reveals.length) {
