@@ -6,8 +6,33 @@
 <title>Meccal — Máquinas para Endireitamento, Corte e Conformação de Arame</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="loading">
 
+<div id="site-loader" class="loader">
+  <video class="loader-video" autoplay muted loop playsinline preload="auto">
+    <source src="img/loading-video.webm" type="video/webm">
+    <source src="img/loading-video.mp4" type="video/mp4">
+  </video>
+  <div class="loader-overlay"></div>
+  <div class="loader-content">
+    <div class="loader-greeting">Bem-vindo a</div>
+    <img src="img/logo-meccal-branca.webp" alt="Meccal" class="loader-logo">
+  </div>
+</div>
+<script>
+  // Inline, synchronous: hides the loader before first paint if already
+  // shown this session, so there's no flash of the loading screen.
+  (function () {
+    try {
+      if (sessionStorage.getItem('meccalLoaderShown') === '1') {
+        document.write('<style>#site-loader{display:none !important;}body.loading{overflow:auto !important;}</style>');
+      }
+    } catch (e) {}
+  })();
+</script>
+
+
+<div class="site-header-wrap" id="site-header-wrap">
 <div class="topbar">
   <div class="wrap">
     <span>(14) 3201-1522 / 0800 203 1522</span>
@@ -16,59 +41,61 @@
 </div>
 
 <header class="site-header">
-  <div class="wrap header-inner">
-    <a href="index.html"><img src="img/meccal-logo.png" alt="Meccal — Tecnologia da Nova Geração" class="logo-img"></a>
+  <div class="header-inner">
+    <a href="index.html"><img src="img/logo-meccal.webp" alt="Meccal — Tecnologia da Nova Geração" class="logo-img"></a>
+    <div class="nav-backdrop"></div>
     <nav class="mainnav">
-      <ul>
+  <div class="mainnav-head">
+    <img src="img/logo-meccal.webp" alt="Meccal" class="mainnav-logo">
+    <button class="nav-close" aria-label="Fechar menu">&#10005;</button>
+  </div>
+  <ul>
         <li><a href="index.html" class="active">Home</a></li>
-        <li><a href="empresa.html">Empresa</a></li>
-        <li><a href="#" class="disabled">Máquinas<span class="soon">(Fase 3)</span></a></li>
-        <li><a href="#" class="disabled">Produtos<span class="soon">(Fase 3)</span></a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="#" class="disabled">Máquinas</a></li>
+        <li><a href="#" class="disabled">Produtos</a></li>
         <li><a href="contato.html">Contato</a></li>
-        <li><a href="contato.html" class="nav-cta">Falar com a Meccal</a></li>
+        <li><a href="https://api.whatsapp.com/send?phone=5514997758195&text=Ol%C3%A1,%20contato%20do%20site%20Meccal.com.br" target="_blank" rel="noopener" class="nav-cta">Fale conosco!</a></li>
       </ul>
-    </nav>
-    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">MENU</button>
+</nav>
+    <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">
+      <span class="nav-toggle-bars"><span></span><span></span><span></span></span>
+    </button>
   </div>
 </header>
+</div>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="blob" style="width:520px;height:520px;background:var(--blue-soft);top:-180px;right:-120px;"></div>
-  <div class="blob" style="width:380px;height:380px;background:var(--orange-soft);bottom:-140px;left:-80px;"></div>
-  <div class="wrap hero-grid">
-    <div class="reveal">
-      <div class="kicker">Fabricação própria em Bauru/SP desde 1974</div>
-      <h1>As máquinas que endireitam, cortam e conformam o arame há <span class="accent">três gerações</span> de clientes.</h1>
-      <p class="lead">A Meccal projeta e fabrica, na própria planta em Bauru, máquinas para corte, endireitamento e conformação de arame — para metalurgia e construção civil. Do primeiro pedido à quarta compra, o mesmo cliente continua voltando.</p>
-      <div class="hero-ctas">
-        <a href="#destaques" class="btn btn-primary">Ver máquinas em destaque</a>
-        <a href="contato.html" class="btn btn-outline">Falar com um especialista</a>
-      </div>
-    </div>
-    <div class="reveal reveal-2" style="position:relative;">
-      <div class="media-fluid" style="aspect-ratio:3/4;">
-        <img src="img/meccal-interno.webp" alt="Interior da fábrica Meccal em Bauru/SP, com máquinas CNC em produção">
-      </div>
+<!-- HERO — vídeo de sangria total, mesmo tratamento da página Sobre -->
+<section class="about-hero-full parallax-wrap">
+  <video class="about-hero-img parallax" data-speed="0.15" autoplay muted loop playsinline preload="auto" poster="img/meccal-interno.webp">
+    <source src="img/hero-loop.webm" type="video/webm">
+    <source src="img/hero-loop.mp4" type="video/mp4">
+  </video>
+  <div class="about-hero-overlay"></div>
+  <div class="about-hero-content reveal">
+    <div class="eyebrow" style="background:rgba(255,255,255,.14);color:#e8f0f7;">Fabricação própria em Bauru/SP desde 1974</div>
+    <h1 style="max-width:760px;color:#fff;">Máquinas feitas para durar. <span class="accent">Confiança que atravessa o tempo.</span></h1>
+    <p class="lead" style="max-width:600px;color:#e9edf1;">A Meccal projeta e fabrica, na própria planta em Bauru, máquinas para corte, endireitamento e conformação de arame, para metalurgia e construção civil. Do primeiro pedido à quarta compra, o mesmo cliente continua voltando.</p>
+    <div class="hero-ctas" style="margin-top:30px;">
+      <a href="#destaques" class="btn btn-primary">Ver máquinas em destaque</a>
     </div>
   </div>
 </section>
 
 <!-- QUEM É A MECCAL -->
 <section class="section-alt">
-  <div class="wrap grid-2">
+  <div class="wrap grid-2 grid-2-img-lg">
     <div class="reveal">
-      <div class="ph" style="min-height:320px;">
-        <span class="ph-icon">▢</span>
-        <span class="ph-label">Foto aérea da fábrica — Bauru/SP</span>
+      <div class="media-simple">
+        <img src="img/section-2.webp" alt="Máquina Meccal em produção na fábrica de Bauru/SP">
       </div>
     </div>
     <div class="reveal reveal-2">
       <div class="eyebrow">Quem é a Meccal</div>
       <h2>Uma empresa que se mede em gerações, não em anos.</h2>
-      <p>Tem cliente que começou a comprar da Meccal ainda com o avô à frente do negócio. Depois veio o pai. Hoje é o filho quem faz o pedido — e a máquina continua sendo feita do mesmo jeito: projetada, fabricada e testada aqui em Bauru, do início ao fim.</p>
-      <p>Não terceirizamos a fabricação. Cada máquina que sai da Meccal foi pensada, soldada e calibrada pela nossa própria equipe — o que significa que quem atende também é quem entende de cada parafuso.</p>
-      <a href="empresa.html" class="destaque-cta">Conheça a história completa →</a>
+      <p>Tem cliente que começou a comprar da Meccal ainda com o avô à frente do negócio. Depois veio o pai. Hoje é o filho quem faz o pedido. A máquina continua sendo feita do mesmo jeito: projetada, fabricada e testada aqui em Bauru, do início ao fim.</p>
+      <p>Não terceirizamos a fabricação. Cada máquina que sai da Meccal foi pensada, soldada e calibrada pela nossa própria equipe. Isso significa que quem atende também é quem entende de cada parafuso.</p>
+      <a href="sobre.html" class="destaque-cta">Conheça nossa história →</a>
     </div>
   </div>
 </section>
@@ -79,41 +106,45 @@
     <div class="center reveal">
       <div class="eyebrow">Direto da fábrica</div>
       <h2>Máquinas em destaque</h2>
-      <p class="lead" style="max-width:640px;margin:0 auto 26px;">Seleção de máquinas com condição especial ou disponibilidade imediata — novas e seminovas revisadas pela Meccal.</p>
+      <p class="lead" style="max-width:640px;margin:0 auto 26px;">Seleção de máquinas com condição especial ou disponibilidade imediata: novas e seminovas revisadas pela Meccal.</p>
     </div>
 
     <div class="grid-4">
       <div class="destaque-card reveal reveal-1">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]"></div>
+        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
+            <span class="selo selo-promocao">Promoção</span>
+          </div>
         <div class="destaque-body">
-          <span class="selo selo-promocao">Promoção</span>
           <h3>[Nome do modelo]</h3>
           <div class="fam">Metalurgia</div>
           <span class="destaque-cta">Saiba mais →</span>
         </div>
       </div>
       <div class="destaque-card reveal reveal-2">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]"></div>
+        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
+            <span class="selo selo-seminovo">Seminovo</span>
+          </div>
         <div class="destaque-body">
-          <span class="selo selo-seminovo">Seminovo</span>
           <h3>[Nome do modelo]</h3>
           <div class="fam">Construção Civil</div>
           <span class="destaque-cta">Saiba mais →</span>
         </div>
       </div>
       <div class="destaque-card reveal reveal-3">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]"></div>
+        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
+            <span class="selo selo-promocao">Promoção</span>
+          </div>
         <div class="destaque-body">
-          <span class="selo selo-promocao">Promoção</span>
           <h3>[Nome do modelo]</h3>
           <div class="fam">Metalurgia</div>
           <span class="destaque-cta">Saiba mais →</span>
         </div>
       </div>
       <div class="destaque-card reveal reveal-4">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]"></div>
+        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
+            <span class="selo selo-seminovo">Seminovo</span>
+          </div>
         <div class="destaque-body">
-          <span class="selo selo-seminovo">Seminovo</span>
           <h3>[Nome do modelo]</h3>
           <div class="fam">Construção Civil</div>
           <span class="destaque-cta">Saiba mais →</span>
@@ -124,8 +155,10 @@
 </section>
 
 <!-- DIFERENCIAIS -->
-<section class="section-alt">
-  <div class="wrap">
+<section class="dif-section parallax-wrap">
+  <img src="img/meccal-interno.webp" alt="" class="dif-bg-img parallax" data-speed="0.12">
+  <div class="dif-bg-overlay"></div>
+  <div class="wrap" style="position:relative;z-index:1;">
     <div class="reveal">
       <div class="eyebrow">Por que a Meccal</div>
       <h2>O que muda quando a máquina é feita por quem também dá manutenção nela.</h2>
@@ -134,11 +167,11 @@
       <div class="dif-card reveal reveal-1">
         <div class="dif-icon">
           <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 40V20l10 7V20l10 7V20l10 7v13z"/><path d="M6 40h32"/>
+            <path d="M9 34V14l10 7V14l10 7V14l10 7v13z"/><path d="M9 34h30"/>
           </svg>
         </div>
         <h3>100% fabricada em Bauru</h3>
-        <p>Da engenharia ao teste final, toda máquina do catálogo é produzida na nossa própria planta — sem intermediários, sem importação de linha.</p>
+        <p>Da engenharia ao teste final, toda máquina do catálogo é produzida na nossa própria planta. Sem intermediários, sem importação de linha.</p>
       </div>
       <div class="dif-card reveal reveal-2">
         <div class="dif-icon">
@@ -147,7 +180,7 @@
           </svg>
         </div>
         <h3>Sua máquina antiga vira crédito</h3>
-        <p>Compramos, reformamos e revendemos equipamentos usados — uma forma de trocar de máquina sem travar o caixa da sua produção.</p>
+        <p>Compramos, reformamos e revendemos equipamentos usados, uma forma de trocar de máquina sem travar o caixa da sua produção.</p>
       </div>
       <div class="dif-card reveal reveal-3">
         <div class="dif-icon">
@@ -159,30 +192,49 @@
           </svg>
         </div>
         <h3>Atendimento de quem projeta</h3>
-        <p>Dúvida técnica, peça de reposição ou suporte — você fala com quem entende de engenharia da própria máquina, não com um call center.</p>
+        <p>Dúvida técnica, peça de reposição ou suporte. Você fala com quem entende de engenharia da própria máquina, não com um call center.</p>
       </div>
     </div>
   </div>
 </section>
 
 <!-- PROVA GERACIONAL -->
-<section>
-  <div class="wrap grid-2">
+<section style="padding-bottom:36px;">
+  <div class="wrap grid-2 grid-2-img-lg-r">
     <div class="reveal">
-      <div class="quote-mark">"</div>
       <div class="eyebrow">Confiança, na prática</div>
       <blockquote class="quote-block">
-        <p>Tem cliente nosso que era do avô. Depois passou pro pai. Hoje quem compra é o filho — e ainda é da Meccal.</p>
+        <p>Tem cliente nosso que era do avô. Depois passou pro pai. Hoje quem compra é o filho, e ainda é da Meccal.</p>
         <cite>— Fabrício, sócio da Meccal</cite>
       </blockquote>
       <p style="margin-top:16px;">Não é um discurso de propaganda: é o tipo de relação que só se constrói fabricando máquina que dura e dando suporte de verdade, década após década.</p>
     </div>
     <div class="reveal reveal-2">
-      <div class="ph" style="min-height:280px;">
-        <span class="ph-icon">▢</span>
-        <span class="ph-label">Foto — equipe / galpão / histórico da empresa</span>
+      <div class="media-simple">
+        <img src="img/section-5.webp" alt="Equipe Meccal trabalhando na produção das máquinas, em Bauru/SP">
       </div>
     </div>
+  </div>
+</section>
+
+<!-- SEMINOVOS E REFORMA -->
+<section style="padding-top:36px;">
+  <div class="wrap">
+  <div class="cta-final reveal">
+    <div class="blob" style="width:420px;height:420px;background:rgba(1,102,172,.35);top:-160px;left:-100px;"></div>
+    <div class="blob" style="width:340px;height:340px;background:rgba(254,121,0,.22);bottom:-140px;right:-80px;"></div>
+    <div class="cta-final-grid">
+      <div class="cta-final-media">
+        <img src="img/mec-160-reforma.webp" alt="Máquina Meccal em processo de reforma na fábrica">
+      </div>
+      <div class="cta-final-text">
+        <div class="eyebrow">Seminovos e reforma</div>
+        <h2>Sua máquina antiga também tem valor pra gente.</h2>
+        <p>Compramos, reformamos e revendemos máquinas usadas. E se você não quer trocar, também fazemos a reforma completa direto na sua máquina, deixando ela como nova sem precisar comprar outra.</p>
+        <a href="contato.html" class="btn btn-primary">Falar sobre seminovos e reforma</a>
+      </div>
+    </div>
+  </div>
   </div>
 </section>
 
@@ -196,68 +248,73 @@
   </div>
   <div class="marquee reveal reveal-2" style="margin-top:40px;">
     <div class="marquee-track">
-      <div class="ph cliente-logo"><span class="ph-label">Logo Gerdau</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Incomaq</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Masutti Copat</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Medabil</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Piva</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Gerdau</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Incomaq</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Masutti Copat</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Medabil</span></div>
-      <div class="ph cliente-logo"><span class="ph-label">Logo Piva</span></div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA FINAL -->
-<section>
-  <div class="cta-final reveal">
-    <div class="blob" style="width:420px;height:420px;background:rgba(1,102,172,.35);top:-160px;left:-100px;"></div>
-    <div class="blob" style="width:340px;height:340px;background:rgba(254,121,0,.22);bottom:-140px;right:-80px;"></div>
-    <div class="wrap center" style="padding:76px 32px;">
-      <div class="eyebrow">Fale com a fábrica</div>
-      <h2>Precisa de uma máquina que aguenta a rotina da sua produção?</h2>
-      <p style="max-width:520px;margin:0 auto 30px;">Fale com a Meccal e explique sua necessidade — nossa equipe indica o modelo certo, novo ou seminovo revisado.</p>
-      <a href="contato.html" class="btn btn-primary">Falar com a Meccal</a>
+      <div class="cliente-logo"><img src="img/clientes/belgo.png" alt="Belgo Grupo Arcelor"></div>
+      <div class="cliente-logo"><img src="img/clientes/gerdau.png" alt="Gerdau"></div>
+      <div class="cliente-logo"><img src="img/clientes/probel.png" alt="Probel Campo Limpo"></div>
+      <div class="cliente-logo"><img src="img/clientes/bigfer.webp" alt="Grupo Bigfer"></div>
+      <div class="cliente-logo"><img src="img/clientes/brastemp.webp" alt="Brastemp"></div>
+      <div class="cliente-logo"><img src="img/clientes/tigre.webp" alt="Tigre"></div>
+      <div class="cliente-logo"><img src="img/clientes/tramontina.webp" alt="Tramontina"></div>
+      <div class="cliente-logo"><img src="img/clientes/alambre.jpg" alt="Alambre"></div>
+      <div class="cliente-logo"><img src="img/clientes/incomaq.jpg" alt="Incomaq"></div>
+      <div class="cliente-logo"><img src="img/clientes/medabil.jpg" alt="Medabil Sistemas Estruturais"></div>
+      <div class="cliente-logo"><img src="img/clientes/piva.jpg" alt="Piva Acessórios para o Mobiliário"></div>
+      <div class="cliente-logo"><img src="img/clientes/pointh.jpg" alt="Pointh Display"></div>
+      <div class="cliente-logo"><img src="img/clientes/telasul.jpg" alt="Telasul"></div>
+      <div class="cliente-logo"><img src="img/clientes/belgo.png" alt="Belgo Grupo Arcelor"></div>
+      <div class="cliente-logo"><img src="img/clientes/gerdau.png" alt="Gerdau"></div>
+      <div class="cliente-logo"><img src="img/clientes/probel.png" alt="Probel Campo Limpo"></div>
+      <div class="cliente-logo"><img src="img/clientes/bigfer.webp" alt="Grupo Bigfer"></div>
+      <div class="cliente-logo"><img src="img/clientes/brastemp.webp" alt="Brastemp"></div>
+      <div class="cliente-logo"><img src="img/clientes/tigre.webp" alt="Tigre"></div>
+      <div class="cliente-logo"><img src="img/clientes/tramontina.webp" alt="Tramontina"></div>
+      <div class="cliente-logo"><img src="img/clientes/alambre.jpg" alt="Alambre"></div>
+      <div class="cliente-logo"><img src="img/clientes/incomaq.jpg" alt="Incomaq"></div>
+      <div class="cliente-logo"><img src="img/clientes/medabil.jpg" alt="Medabil Sistemas Estruturais"></div>
+      <div class="cliente-logo"><img src="img/clientes/piva.jpg" alt="Piva Acessórios para o Mobiliário"></div>
+      <div class="cliente-logo"><img src="img/clientes/pointh.jpg" alt="Pointh Display"></div>
+      <div class="cliente-logo"><img src="img/clientes/telasul.jpg" alt="Telasul"></div>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <img src="img/meccal-logo.png" alt="Meccal" class="logo-img">
-    <div class="grid-3">
-      <div>
-        <h3>Localização</h3>
-        <p style="color:#b7b7b7;">Av. Lúcio Luciano, nº 2-33<br>Pq. Bauru — Bauru/SP<br>CEP 17031-600</p>
-      </div>
-      <div>
-        <h3>Contato</h3>
-        <p style="color:#b7b7b7;">
-          <a href="mailto:contato@meccal.com.br">contato@meccal.com.br</a><br>
-          <a href="mailto:vendas@meccal.com.br">vendas@meccal.com.br</a>
-        </p>
-        <div class="social-row">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="img/logo-meccal-branca.webp" alt="Meccal" class="logo-img">
+        <p>Máquinas para endireitamento, corte e conformação de arame, fabricadas em Bauru/SP desde 1974.</p>
+        <div class="social-row footer-social">
           <a class="social-link" href="https://www.linkedin.com/company/meccal-maquinas/home/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 512 512"><path d="m256 0c-141.363281 0-256 114.636719-256 256s114.636719 256 256 256 256-114.636719 256-256-114.636719-256-256-256zm-74.390625 387h-62.347656v-187.574219h62.347656zm-31.171875-213.1875h-.40625c-20.921875 0-34.453125-14.402344-34.453125-32.402344 0-18.40625 13.945313-32.410156 35.273437-32.410156 21.328126 0 34.453126 14.003906 34.859376 32.410156 0 18-13.53125 32.402344-35.273438 32.402344zm255.984375 213.1875h-62.339844v-100.347656c0-25.21875-9.027343-42.417969-31.585937-42.417969-17.222656 0-27.480469 11.601563-31.988282 22.800781-1.648437 4.007813-2.050781 9.609375-2.050781 15.214844v104.75h-62.34375s.816407-169.976562 0-187.574219h62.34375v26.558594c8.285157-12.78125 23.109375-30.960937 56.1875-30.960937 41.019531 0 71.777344 26.808593 71.777344 84.421874zm0 0"/></svg></a>
           <a class="social-link" href="https://www.instagram.com/meccalmaquinas/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 512 512"><circle cx="256" cy="256" r="52.5"/><path d="m256 6c-138.071 0-250 111.929-250 250s111.929 250 250 250 250-111.929 250-250-111.929-250-250-250zm154.458 313.54c-1.2 23.768-7.879 47.206-25.2 64.343-17.489 17.3-41.038 23.746-65.035 24.934h-128.445c-24-1.188-47.546-7.63-65.035-24.934-17.322-17.137-24-40.575-25.2-64.343v-127.08c1.2-23.768 7.879-47.206 25.2-64.344 17.489-17.3 41.038-23.746 65.035-24.933h128.444c24 1.187 47.546 7.63 65.035 24.933 17.322 17.138 24 40.576 25.2 64.344z"/><path d="m318.6 132.138c-31.286-.858-93.906-.858-125.192 0-16.281.447-34.738 4.5-46.338 16.89-12.054 12.879-16.609 28.439-17.071 45.846-.812 30.552 0 122.252 0 122.252.529 17.405 5.017 32.967 17.071 45.846 11.6 12.394 30.057 16.443 46.338 16.89 31.286.858 93.906.858 125.192 0 16.281-.447 34.738-4.5 46.338-16.89 12.054-12.879 16.609-28.439 17.071-45.846v-122.252c-.462-17.407-5.017-32.967-17.071-45.846-11.604-12.394-30.061-16.443-46.338-16.89zm-62.6 205.237a81.375 81.375 0 1 1 81.375-81.375 81.375 81.375 0 0 1 -81.375 81.375zm81.721-145.953a16.275 16.275 0 1 1 16.279-16.275 16.275 16.275 0 0 1 -16.279 16.275z"/></svg></a>
           <a class="social-link" href="https://www.facebook.com/meccalmaquinasindustriais" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 512 512"><path d="m255.1824 7.7579q69.23.79 125.0851 34.0293a249.7343 249.7343 0 0 1 88.8909 89.4346q33.0371 56.1914 33.8244 125.8428-1.962 95.3-60.1167 162.791c-38.77 44.9941-88.425 72.83-139.8274 83.5009v-178.1275h48.5969l10.99-70h-73.5869v-45.8481a39.844 39.844 0 0 1 8.4739-26.3232q8.8275-11.2527 31.0895-11.8287h44.4366v-61.3184q-.9563-.3077-18.15-2.4336a360.7434 360.7434 0 0 0 -39.16-2.4336q-44.4328.205-70.2811 25.0674-25.8488 24.8554-26.4085 71.9209v53.1973h-56v70h56v178.1275c-63.1149-10.6709-112.77-38.5068-151.54-83.5009s-58.808-99.2578-60.1162-162.791q.7851-69.6546 33.8236-125.8428a249.7389 249.7389 0 0 1 88.8917-89.4346q55.8534-33.2329 125.0842-34.0293z" fill-rule="evenodd"/></svg></a>
         </div>
       </div>
-      <div>
-        <h3>Telefones</h3>
-        <p style="color:#b7b7b7;">(14) 3201-1522<br>(14) 3203-1522<br>0800 203 1522</p>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h3>Localização</h3>
+          <p><a href="https://www.google.com/maps/search/?api=1&query=Meccal+M%C3%A1quinas+Av.+L%C3%BAcio+Luciano+2-33+Bauru+SP" target="_blank" rel="noopener">Av. Lúcio Luciano, nº 2-33<br>Pq. Bauru, Bauru/SP<br>CEP 17031-600</a></p>
+        </div>
+        <div class="footer-col">
+          <h3>Contato</h3>
+          <p>
+            <a href="mailto:contato@meccal.com.br">contato@meccal.com.br</a><br>
+            <a href="mailto:vendas@meccal.com.br">vendas@meccal.com.br</a>
+          </p>
+        </div>
+        <div class="footer-col">
+          <h3>Telefones</h3>
+          <p>(14) 3201-1522<br>(14) 3203-1522<br>0800 203 1522</p>
+        </div>
       </div>
     </div>
     <div class="footer-bottom">
       <span>© Meccal Máquinas para Endireitamento e Corte de Arames Ltda.</span>
+      <a href="https://pedrospadotto.me" target="_blank" rel="noopener">feito por pedrospadotto.me</a>
     </div>
   </div>
 </footer>
 
-<a class="whats-float" href="https://api.whatsapp.com/send?phone=5514997758195&text=Ol%C3%A1,%20contato%20do%20site%20Meccal.com.br" target="_blank" rel="noopener" title="Fale no WhatsApp" aria-label="WhatsApp">
-  <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16.001 3C9.096 3 3.5 8.596 3.5 15.5c0 2.44.71 4.712 1.933 6.627L3.5 29l7.06-1.867a12.42 12.42 0 0 0 5.44 1.25c6.905 0 12.5-5.596 12.5-12.5S22.906 3 16.001 3zm0 22.7c-1.83 0-3.62-.49-5.19-1.42l-.372-.222-4.19 1.107 1.12-4.083-.243-.39a10.19 10.19 0 0 1-1.564-5.192c0-5.643 4.594-10.237 10.239-10.237 5.644 0 10.238 4.594 10.238 10.237 0 5.645-4.594 10.2-10.038 10.2zm5.61-7.66c-.307-.154-1.814-.895-2.096-.997-.281-.103-.486-.154-.69.153-.205.308-.79.997-.968 1.203-.179.205-.357.23-.664.077-.307-.154-1.296-.478-2.47-1.524-.913-.814-1.529-1.82-1.708-2.127-.179-.307-.019-.473.135-.626.138-.138.307-.358.46-.537.154-.18.205-.308.307-.513.103-.205.052-.384-.026-.538-.077-.153-.69-1.663-.945-2.278-.249-.598-.502-.517-.69-.527l-.588-.01c-.205 0-.538.077-.82.384-.281.307-1.074 1.05-1.074 2.56 0 1.51 1.1 2.968 1.253 3.174.154.205 2.166 3.31 5.25 4.64.734.317 1.306.506 1.752.648.736.234 1.406.2 1.936.121.59-.088 1.814-.741 2.07-1.457.256-.716.256-1.33.18-1.457-.077-.128-.282-.205-.59-.359z"/></svg>
-</a>
 
 <script src="js/main.js"></script>
 </body>
