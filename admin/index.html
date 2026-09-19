@@ -1,0 +1,1375 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src 'self' https://fonts.gstatic.com;
+  img-src 'self' data: blob: https:;
+  connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com;
+  frame-src 'self' https://*.firebaseapp.com;
+">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Administrativo | Meccal</title>
+
+<link rel="icon" href="../img/logo-meccal.webp" type="image/webp" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="styles.css">
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
+<style>
+  /* ==========================================================================
+     Painel Administrativo Meccal — reaproveita os componentes do painel MedControl,
+     agora com a identidade visual da Meccal (tokens definidos abaixo, sem depender de styles.css externo)
+     ========================================================================== */
+
+  :root {
+    --text:#181818;
+    --blue:#0166AC;
+    --blue-dark:#014d82;
+    --gray-light:#f2f2f2;
+    --white:#ffffff;
+    --accent:#d92d2d;
+    --font-sans:'Inter', sans-serif;
+    --font-head:'Space Grotesk', sans-serif;
+    --admin-radius: 10px;
+    --admin-border: #e3e4e5;
+  }
+
+  body { font-family:var(--font-sans); background: #f7f7f8; margin:0; }
+  h1,h2,h3 { font-family:var(--font-head); }
+
+  .admin-top {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--admin-border);
+  }
+  .admin-top .container { height: 4rem; display: flex; align-items: center; justify-content: space-between; }
+  .admin-top .logo-img { height: 28px; width: auto; display: block; }
+  .admin-top .who { font-size: .8125rem; color: #6b6d6e; display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+  .admin-top .who b { color: var(--text); font-weight: 700; }
+
+  .pill { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; border: 1px solid var(--admin-border); color: #6b6d6e; }
+  .pill.admin { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .pill.editor { color: var(--blue); border-color: var(--blue); background: #eef3fa; }
+
+  .admin-shell { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+  .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--admin-border); margin-bottom: 2rem; flex-wrap: wrap; }
+  .tab { background: none; border: none; border-bottom: 2px solid transparent; padding: .75rem 1rem; font-size: .8125rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b6d6e; cursor: pointer; font-family: var(--font-sans); }
+  .tab.active { color: var(--blue); border-bottom-color: var(--accent); }
+  .panel { display: none; } .panel.active { display: block; }
+
+  .row-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+  .row-head h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.01em; margin: 0; color: var(--text); }
+  .row-head .sub { font-size: .8125rem; color: #6b6d6e; margin-top: .2rem; }
+
+  .status-tabs { display: flex; gap: .5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .status-tab { background: #fff; border: 1px solid var(--admin-border); border-radius: 999px; padding: .4rem .9rem; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #6b6d6e; cursor: pointer; }
+  .status-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  table.tbl { width: 100%; border-collapse: collapse; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); overflow: hidden; background: #fff; }
+  .tbl th { text-align: left; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #6b6d6e; font-weight: 700; padding: .8rem 1rem; border-bottom: 1px solid var(--admin-border); background: #fafafa; }
+  .tbl td { padding: .8rem 1rem; font-size: .875rem; border-bottom: 1px solid var(--admin-border); vertical-align: middle; color: var(--text); }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl .thumb { width: 4.5rem; height: 3.25rem; object-fit: cover; border: 1px solid var(--admin-border); border-radius: 6px; background: #f0f0f0; display: block; }
+  .tbl .act { display: flex; gap: .5rem; justify-content: flex-end; flex-wrap: wrap; }
+  .empty-row { text-align: center; color: #6b6d6e; padding: 3rem 1rem; font-size: .875rem; }
+
+  .icon-btn { background: #fff; border: 1px solid var(--admin-border); border-radius: 6px; padding: .4rem .75rem; font-size: .75rem; font-weight: 600; cursor: pointer; color: var(--text); line-height: 1.4; display: inline-flex; align-items: center; font-family: var(--font-sans); }
+  .icon-btn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+  .icon-btn.danger { color: var(--accent); border-color: #f0c9cb; }
+  .icon-btn.danger:hover { background: #fdecec; }
+  .icon-btn:disabled { opacity: .4; cursor: default; }
+
+  .btn-sm-solid { background: var(--blue); color: #fff; border: none; border-radius: 999px; padding: .6rem 1.1rem; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; font-family: var(--font-sans); }
+  .btn-sm-solid:hover { background: var(--blue-dark); }
+
+  .badge-status { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .2rem .55rem; border-radius: 999px; display: inline-block; }
+  .badge-status.publicado { background: #e4f5ea; color: #1a7f47; }
+  .badge-status.rascunho { background: #f0f0f0; color: #6b6d6e; }
+  .badge-status.arquivado { background: #fdecec; color: var(--accent); }
+
+  /* Modal */
+  .overlay { position: fixed; inset: 0; background: rgba(20,24,28,.5); display: none; align-items: flex-start; justify-content: center; z-index: 60; padding: 2rem 1rem; overflow-y: auto; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); width: 100%; max-width: 42rem; margin: auto; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--admin-border); }
+  .modal-head h3 { font-size: 1rem; font-weight: 700; margin: 0; color: var(--text); }
+  .modal-body { padding: 1.5rem; }
+  .modal-foot { display: flex; justify-content: flex-end; gap: .75rem; padding: 1.25rem 1.5rem; border-top: 1px solid var(--admin-border); }
+  .x-btn { background: none; border: none; cursor: pointer; color: #6b6d6e; padding: .25rem; font-size: 1.1rem; line-height: 1; }
+
+  .fld { margin-bottom: 1rem; }
+  .fld label { display: block; font-size: .75rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #6b6d6e; margin-bottom: .375rem; }
+  .fld input, .fld select, .fld textarea { width: 100%; border: 1px solid #cfd1d2; border-radius: 8px; padding: .65rem .75rem; font-size: .875rem; background: #fff; color: var(--text); font-family: var(--font-sans); }
+  .fld input:focus, .fld select:focus, .fld textarea:focus { outline: none; border-color: var(--blue); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+
+  .uploader { border: 2px dashed var(--admin-border); border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; }
+  .uploader input { display: none; }
+  .uploader .hint { font-size: .75rem; color: #6b6d6e; }
+  .thumbs-edit { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+  .thumbs-edit .t { position: relative; }
+  .thumbs-edit img { width: 5.5rem; height: 4rem; object-fit: cover; border: 1px solid var(--admin-border); border-radius: 6px; display: block; }
+  .thumbs-edit .del { position: absolute; top: -.4rem; right: -.4rem; width: 1.25rem; height: 1.25rem; background: var(--accent); color: #fff; border: none; border-radius: 9999px; font-size: .7rem; cursor: pointer; line-height: 1; z-index: 2; }
+  .thumbs-edit .cover-badge { position: absolute; top: .25rem; left: .25rem; background: var(--blue); color: #fff; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: .1rem .35rem; border-radius: 4px; z-index: 2; }
+  .thumbs-edit .reorder { display: flex; justify-content: center; gap: .2rem; margin-top: .25rem; }
+  .thumbs-edit .reorder button { background: #fff; border: 1px solid var(--admin-border); border-radius: 4px; width: 1.3rem; height: 1.1rem; font-size: .65rem; line-height: 1; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; }
+  .thumbs-edit .reorder button:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+  .thumbs-edit .reorder button:disabled { opacity: .3; cursor: default; }
+  .prog { height: .25rem; background: #eee; border-radius: 9999px; overflow: hidden; margin-top: .5rem; display: none; }
+  .prog.show { display: block; }
+  .prog .bar { height: 100%; background: var(--blue); width: 0; transition: width .2s; }
+
+  .msg { font-size: .8125rem; padding: .6rem .75rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+  .msg.show { display: block; }
+  .msg.err { background: #fdecec; color: var(--accent); border: 1px solid #f0c9cb; }
+  .msg.ok { background: #e4f5ea; color: #1a7f47; border: 1px solid #bfe6cd; }
+
+  /* Login / estados */
+  .center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: #f7f7f8; }
+  .auth-card { width: 100%; max-width: 24rem; background: #fff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 2.25rem; box-shadow: 0 12px 32px -12px rgba(20,24,28,.12); }
+  .auth-logo { display: flex; align-items: center; margin-bottom: 1.75rem; }
+  .auth-logo img { height: 30px; width: auto; }
+  .auth-card h1 { font-size: 1.125rem; font-weight: 700; margin: 0 0 .25rem 0; color: var(--text); }
+  .auth-card .muted { font-size: .8125rem; margin: 0 0 1.5rem 0; color: #6b6d6e; }
+  .link-btn { background: none; border: none; color: var(--blue); text-decoration: underline; font-size: .8125rem; cursor: pointer; padding: 0; font-family: var(--font-sans); }
+  .notice { max-width: 40rem; margin: 3rem auto; background: #fff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 2rem; }
+  .notice h2 { font-size: 1.125rem; font-weight: 700; margin: 0 0 .75rem 0; color: var(--text); }
+  .notice p, .notice li { font-size: .875rem; color: #55585a; line-height: 1.65; }
+  .notice ol { margin: .75rem 0 0 1.25rem; }
+  .notice code { background: #f0f0f0; padding: .1rem .35rem; border-radius: 4px; font-size: .8125rem; }
+  .spinner { min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #6b6d6e; font-size: .875rem; background: #f7f7f8; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* Leads */
+  .badge-count { background: var(--accent); color: #fff; border-radius: 999px; padding: 2px 6px; font-size: 9px; margin-left: 4px; display: inline-block; }
+  .date-divider td { background: #f0f1f2; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: #55585a; padding: .5rem 1rem !important; border-bottom: 1px solid var(--admin-border); }
+  .status-select { background: #fff; border: 1px solid var(--admin-border); color: var(--text); border-radius: 6px; padding: .3rem .5rem; font-size: 11px; font-weight: 700; outline: none; cursor: pointer; font-family: var(--font-sans); }
+  .status-select:disabled { opacity: .55; cursor: default; }
+  .av-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: .875rem 1.5rem; }
+  .av-item label { display: block; font-size: .6875rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #6b6d6e; margin-bottom: .25rem; }
+  .av-item .val { font-size: .875rem; color: var(--text); word-break: break-word; }
+  .av-desc { font-size: .875rem; line-height: 1.6; color: var(--text); white-space: pre-wrap; margin: .5rem 0 0 0; }
+
+  /* Sorteio */
+  .raffle-draw-box { background: #fff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .raffle-draw-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+  .raffle-draw-controls label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: #6b6d6e; }
+  .raffle-draw-controls input[type="number"] { width: 5rem; border: 1px solid #cfd1d2; border-radius: 8px; padding: .55rem .6rem; font-size: .875rem; font-family: var(--font-sans); }
+  .raffle-winners { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--admin-border); display: flex; flex-direction: column; gap: .6rem; }
+  .raffle-winners-title { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--blue); margin-bottom: .25rem; }
+  .raffle-winner-item { display: flex; align-items: center; gap: .75rem; background: #eef3fa; border: 1px solid #cfe0f5; border-radius: 8px; padding: .75rem 1rem; }
+  .raffle-winner-item .trophy { font-size: 1.25rem; flex-shrink: 0; }
+  .raffle-winner-item .name { font-weight: 700; color: var(--text); font-size: .9375rem; }
+  .raffle-winner-item .contact { font-size: .75rem; color: #55585a; }
+  .raffle-count-info { font-size: .8125rem; color: #6b6d6e; margin-bottom: 1rem; }
+
+  /* ==========================================================================
+     Otimização mobile — abas roláveis, tabelas com scroll, modal em tela cheia
+     ========================================================================== */
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--admin-radius); }
+  .tbl-wrap table.tbl { border-radius: 0; }
+
+  @media (max-width: 680px) {
+    .admin-shell { padding: 1.5rem 1rem 4rem; }
+
+    .admin-top .container { height: auto; min-height: 3.75rem; padding: .65rem 0; gap: .5rem; }
+    .admin-top .who { font-size: .75rem; gap: .5rem; row-gap: .4rem; }
+    .admin-top .who #meEmail { display: none; }
+    .admin-top .who .icon-btn { padding: .35rem .6rem; font-size: .7rem; }
+
+    .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -1rem 1.5rem; padding: 0 1rem 2px; border-bottom: 1px solid var(--admin-border); }
+    .tab { flex-shrink: 0; padding: .65rem .75rem; font-size: .75rem; white-space: nowrap; }
+
+    .row-head { flex-direction: column; align-items: stretch; }
+    .row-head .btn-sm-solid, .row-head > .icon-btn { width: 100%; justify-content: center; }
+
+    table.tbl { min-width: 620px; }
+
+    .overlay { padding: 0; align-items: stretch; }
+    .modal { max-width: 100%; min-height: 100%; border-radius: 0; margin: 0; }
+    .modal-foot { flex-direction: column-reverse; }
+    .modal-foot button, .modal-foot a { width: 100%; justify-content: center; }
+
+    .av-grid { grid-template-columns: 1fr; }
+
+    .raffle-draw-controls { flex-direction: column; align-items: stretch; }
+    .raffle-draw-controls input[type="number"] { width: 100%; }
+    .raffle-draw-controls .btn-sm-solid, .raffle-draw-controls .icon-btn { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<div id="view-loading" class="spinner">Carregando…</div>
+
+<div id="view-setup" style="display:none">
+  <div class="notice">
+    <h2>Configure o Firebase para ativar o painel</h2>
+    <p>Este painel usa Firebase (Auth + Firestore, e opcionalmente Storage). Para ligá-lo:</p>
+    <ol>
+      <li>Crie um projeto em <code>console.firebase.google.com</code>.</li>
+      <li>Ative <b>Authentication → E-mail/senha</b> e crie um <b>Firestore</b>.</li>
+      <li>Cole as chaves do app em <code>js/firebase-config.js</code>.</li>
+      <li>Crie o primeiro usuário admin manualmente (Auth + documento em <code>users</code> com o mesmo UID, campo <code>role: "admin"</code>).</li>
+    </ol>
+    <p>Depois disso, atualize esta página.</p>
+  </div>
+</div>
+
+<div id="view-login" class="center-screen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo"><img src="../img/logo-meccal.webp" alt="Meccal" /></div>
+    <h1>Painel Administrativo</h1>
+    <p class="muted">Acesso restrito à equipe autorizada.</p>
+    <div id="loginMsg" class="msg"></div>
+    <div class="fld"><label>E-mail</label><input type="email" id="loginEmail" placeholder="voce@meccal.com.br" autocomplete="username"></div>
+    <div class="fld"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn btn-accent-lg btn-full" id="loginBtn" style="border:none; cursor:pointer;">Entrar</button>
+    <div style="margin-top:1rem;text-align:center"><button class="link-btn" id="forgotBtn">Esqueci minha senha</button></div>
+  </div>
+</div>
+
+<div id="view-denied" class="center-screen" style="display:none">
+  <div class="auth-card">
+    <h1>Sem permissão de acesso</h1>
+    <p class="muted">Sua conta está autenticada, mas ainda não tem um papel (admin/editor) atribuído. Peça a um administrador para liberar seu acesso.</p>
+    <button class="btn btn-outline-blue" id="denyLogout" style="margin-top:1rem">Sair</button>
+  </div>
+</div>
+
+<div id="view-app" style="display:none">
+  <div class="admin-top">
+    <div class="container">
+      <a href="../index.html" target="_blank" aria-label="Ver site">
+        <img src="../img/logo-meccal.webp" alt="Meccal" class="logo-img" />
+      </a>
+      <div class="who">
+        <span><b id="meName"></b> <span id="meEmail" style="font-size:.7rem;color:#9a9c9d"></span></span>
+        <span class="pill" id="mePill"></span>
+        <a href="../index.html" class="icon-btn" target="_blank">Ver site</a>
+        <button class="icon-btn" id="logoutBtn">Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-shell">
+    <div class="tabs">
+      <!-- Sorteio e Artigos são recursos herdados do painel MedControl, não usados
+           pela Meccal por enquanto. Código mantido comentado, não excluído. -->
+      <!--
+      <button class="tab" data-tab="raffle">Sorteio Sobecc</button>
+      <button class="tab" data-tab="articles">Artigos</button>
+      -->
+      <button class="tab active" data-tab="catalog">Máquinas</button>
+      <button class="tab" data-tab="leads">Mensagens <span id="unreadBadge" class="badge-count" style="display:none">0</span></button>
+      <button class="tab admin-only" data-tab="users">Usuários & Permissões</button>
+    </div>
+
+    <!-- Sorteio e Artigos são recursos do painel original do MedControl, removidos
+         aqui por não serem usados pela Meccal por enquanto. Se quiser reativar algo
+         parecido no futuro (ex: um blog/artigos), o arquivo admin.html original
+         enviado por você tem esse código completo pra copiar de lá. -->
+
+    <!-- ===================== PAINEL MÁQUINAS (catálogo técnico) ===================== -->
+    <div class="panel active" id="panel-catalog">
+      <div class="row-head">
+        <div>
+          <h2>Máquinas do catálogo</h2>
+          <p class="sub">Cadastre, edite, arquive ou exclua as máquinas exibidas em maquinas.html.</p>
+        </div>
+        <button class="btn-sm-solid" id="addCatalogItem">+ Nova máquina</button>
+      </div>
+
+      <div class="status-tabs">
+        <button class="status-tab active" data-cat-status="todos">Todas</button>
+        <button class="status-tab" data-cat-status="publicado">Publicadas</button>
+        <button class="status-tab" data-cat-status="rascunho">Rascunhos</button>
+        <button class="status-tab" data-cat-status="arquivado">Arquivadas</button>
+      </div>
+
+      <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:4.5rem"></th>
+            <th>Modelo</th>
+            <th>Família</th>
+            <th>Tipo</th>
+            <th>Selo</th>
+            <th>Status</th>
+            <th style="text-align:right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="catalogRows"></tbody>
+      </table>
+      </div>
+    </div>
+    <!-- ===================== FIM PAINEL MÁQUINAS ===================== -->
+
+    <!-- ===================== PAINEL MENSAGENS (LEADS) ===================== -->
+    <div class="panel" id="panel-leads">
+      <div class="row-head">
+        <div>
+          <h2>Mensagens recebidas</h2>
+          <p class="sub">Contatos enviados pelo formulário do site (página Contato).</p>
+        </div>
+        <button class="icon-btn" id="exportLeadsBtn">↓ Exportar CSV</button>
+      </div>
+
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <tbody id="leadsListRows"></tbody>
+        </table>
+      </div>
+      <div id="leadsLoadMore" style="display:none;text-align:center;margin-top:1rem">
+        <button class="icon-btn" id="leadsLoadMoreBtn">Carregar mais mensagens</button>
+        <p id="leadsCount" style="font-size:.75rem;color:#6b6d6e;margin-top:.5rem"></p>
+      </div>
+
+      <div style="margin-top:2rem;border-top:1px solid var(--admin-border);padding-top:1rem;padding-bottom:2rem">
+        <details>
+          <summary style="cursor:pointer;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6b6d6e;outline:none">
+            Ver mensagens arquivadas
+          </summary>
+          <div class="tbl-wrap" style="margin-top:1rem">
+            <table class="tbl">
+              <tbody id="archivedLeadsListRows"></tbody>
+            </table>
+          </div>
+          <div id="archivedLoadMore" style="display:none;text-align:center;margin-top:1rem">
+            <button class="icon-btn" id="archivedLoadMoreBtn">Carregar mais arquivadas</button>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- ===================== PAINEL USUÁRIOS ===================== -->
+    <div class="panel" id="panel-users">
+      <div class="row-head">
+        <div>
+          <h2>Usuários & permissões</h2>
+          <p class="sub">Quem pode acessar este painel, e com qual nível de permissão.</p>
+        </div>
+        <button class="btn-sm-solid" id="addUser">+ Criar usuário</button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl"><tbody id="userRows"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: DETALHES DA MENSAGEM ===================== -->
+<div class="overlay" id="ovLead">
+  <div class="modal" style="max-width:36rem">
+    <div class="modal-head">
+      <h3>Detalhes da mensagem</h3>
+      <button class="x-btn" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="av-grid">
+        <div class="av-item"><label>Nome</label><span class="val" id="ldName"></span></div>
+        <div class="av-item"><label>E-mail</label><span class="val" id="ldEmail"></span></div>
+        <div class="av-item"><label>Telefone</label><span class="val" id="ldPhone"></span></div>
+        <div class="av-item"><label>Data</label><span class="val" id="ldDate"></span></div>
+        <div class="av-item" style="grid-column:1/-1"><label>Assunto de interesse</label><span class="val" id="ldSubject"></span></div>
+        <div class="av-item" style="grid-column:1/-1"><label>Mensagem</label><p class="av-desc" id="ldMessage"></p></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <a href="#" id="ldMailTo" class="icon-btn">Responder por e-mail</a>
+      <a href="#" id="ldWhatsApp" target="_blank" rel="noopener noreferrer" class="btn-sm-solid" style="background:#25D366;text-decoration:none;">Chamar no WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: CADASTRO DE MÁQUINA ===================== -->
+<div class="overlay" id="ovCatalog">
+  <div class="modal">
+    <div class="modal-head"><h3 id="catModalTitle">Nova máquina</h3><button class="x-btn" data-close>✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="catId">
+      <div class="grid2">
+        <div class="fld"><label>Modelo *</label><input id="catTitle" placeholder="Ex: MEC-90 C"></div>
+        <div class="fld"><label>Selo</label>
+          <select id="catSelo">
+            <option value="">Nenhum</option>
+            <option value="seminovo">Seminovo</option>
+            <option value="promocao">Promoção</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>Família *</label>
+          <select id="catFamilia">
+            <option value="">Selecione...</option>
+            <option value="metalurgia">Metalurgia</option>
+            <option value="construcao-civil">Construção Civil</option>
+          </select>
+        </div>
+        <div class="fld"><label>Tipo / linha</label><input id="catTipo" placeholder="Ex: Endireitadeira de Arames"></div>
+      </div>
+      <div class="fld"><label>Resumo breve (exibido no card da vitrine)</label><textarea id="catExcerpt" rows="2" style="resize:vertical" placeholder="Ex: Endireitadeira automática de arames, alimentação por rolos ou bobinas."></textarea></div>
+      <div class="fld">
+        <label>Foto principal da máquina (convertida automaticamente para WebP)</label>
+        <div class="uploader" id="catUpZone"><div class="hint">Clique para enviar a imagem (JPG/PNG)</div><input type="file" id="catFile" accept="image/*"></div>
+        <div class="prog" id="catProg"><div class="bar"></div></div>
+        <div class="thumbs-edit" id="catThumb"></div>
+      </div>
+      <div class="fld">
+        <label>Descrição completa (exibida na página de detalhes)</label>
+        <textarea id="catDescription" rows="5" style="resize:vertical; font-family:var(--font-sans)" placeholder="Descreva a máquina. Quebras de linha (Enter) criam novos parágrafos na página."></textarea>
+      </div>
+      <div class="fld">
+        <label>Ficha técnica</label>
+        <textarea id="catSpecs" rows="8" style="resize:vertical; font-family:var(--font-sans)" placeholder="Um item por linha, no formato Campo: valor. Ex:&#10;Função: Endireitadeira Automática de arames&#10;Alimentação: Automática através de rolos ou bobinas&#10;Bitolas de endireitamento: 3,40 a 6,35mm&#10;Material: CA 60&#10;Comprimento de Corte: Min. 100mm Max 6.000mm&#10;Corte: Mecânico pôr cisalhamento&#10;Força Motriz: Dois motores totalizando 6 H.P. + redutor&#10;Produção: Variável de 20 a 30 m.p.m."></textarea>
+      </div>
+      <div class="fld">
+        <label>Status</label>
+        <select id="catStatus">
+          <option value="rascunho">Rascunho — não aparece no site</option>
+          <option value="publicado">Publicado — visível na página de Máquinas</option>
+          <option value="arquivado">Arquivado — oculto, mas não excluído</option>
+        </select>
+      </div>
+      <div id="catMsg" class="msg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="icon-btn" data-close>Cancelar</button>
+      <button class="btn-sm-solid" id="catSave">Salvar máquina</button>
+    </div>
+  </div>
+</div>
+<!-- ===================== FIM MODAL CADASTRO DE MÁQUINA ===================== -->
+
+<!-- ===================== MODAL: ARTIGO ===================== -->
+<div class="overlay" id="ovArticle">
+  <div class="modal">
+    <div class="modal-head"><h3 id="artModalTitle">Novo artigo</h3><button class="x-btn" data-close>✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="artId">
+      <div class="grid2">
+        <div class="fld"><label>Título do artigo *</label><input id="artTitle" placeholder="Ex: Como reduzir o retrabalho na sua CME"></div>
+        <div class="fld"><label>Categoria</label><input id="artCategory" placeholder="Ex: Boas práticas, CME, Rastreabilidade..."></div>
+      </div>
+      <div class="fld"><label>Resumo breve (exibido no card da listagem)</label><textarea id="artExcerpt" rows="2" style="resize:vertical"></textarea></div>
+      <div class="fld">
+        <label>Imagens do artigo (até 5 — a primeira é a capa; use as setinhas para reordenar)</label>
+        <div class="uploader" id="artUpZone"><div class="hint">Clique para enviar uma imagem (JPG/PNG)</div><input type="file" id="artFile" accept="image/*"></div>
+        <div class="prog" id="artProg"><div class="bar"></div></div>
+        <div class="thumbs-edit" id="artThumb"></div>
+      </div>
+      <div class="fld">
+        <label>Conteúdo completo</label>
+        <textarea id="artContent" rows="10" style="resize:vertical; font-family:var(--font-sans)" placeholder="Escreva o artigo aqui. Quebras de linha (Enter) criam novos parágrafos no site."></textarea>
+      </div>
+      <div class="fld">
+        <label>Status</label>
+        <select id="artStatus">
+          <option value="rascunho">Rascunho — não aparece no site</option>
+          <option value="publicado">Publicado — visível no blog</option>
+          <option value="arquivado">Arquivado — oculto, mas não excluído</option>
+        </select>
+      </div>
+      <div id="artMsg" class="msg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="icon-btn" data-close>Cancelar</button>
+      <button class="btn-sm-solid" id="artSave">Salvar artigo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: CRIAR USUÁRIO ===================== -->
+<div class="overlay" id="ovUser">
+  <div class="modal" style="max-width:28rem">
+    <div class="modal-head"><h3>Criar usuário</h3><button class="x-btn" data-close>✕</button></div>
+    <div class="modal-body">
+      <div id="userMsg" class="msg"></div>
+      <div class="fld"><label>Nome *</label><input id="uName" type="text" placeholder="Nome completo"></div>
+      <div class="fld"><label>E-mail *</label><input id="uEmail" type="email" placeholder="email@meccal.com.br" autocomplete="off"></div>
+      <div class="fld"><label>Senha *</label><input id="uPass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+      <div class="fld"><label>Permissão *</label>
+        <select id="uRole">
+          <option value="editor">Editor — edita conteúdo</option>
+          <option value="admin">Admin — acesso total</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="icon-btn" data-close>Cancelar</button>
+      <button class="btn-sm-solid" id="uSave">Criar usuário</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: EDITAR USUÁRIO ===================== -->
+<div class="overlay" id="ovEditUser">
+  <div class="modal" style="max-width:28rem">
+    <div class="modal-head"><h3>Editar usuário</h3><button class="x-btn" data-close>✕</button></div>
+    <div class="modal-body">
+      <div id="editUserMsg" class="msg"></div>
+      <div class="fld"><label>Nome *</label><input id="editUserName" type="text" placeholder="Nome completo"></div>
+      <div class="fld"><label>E-mail</label><input id="editUserEmail" type="email" disabled style="background:#f0f0f0;color:#6b6d6e"></div>
+      <div class="fld"><label>Permissão *</label>
+        <select id="editUserRole">
+          <option value="editor">Editor — edita conteúdo</option>
+          <option value="admin">Admin — acesso total</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="icon-btn" data-close>Cancelar</button>
+      <button class="btn-sm-solid" id="editUserSave">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/firebase-config.js"></script>
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const show = (id) => ["view-loading","view-setup","view-login","view-denied","view-app"].forEach(v => $(v).style.display = (v===id?"block":"none"));
+  const showFlex = (id) => { show(id); if($(id)) $(id).style.display="flex"; };
+
+  if (!window.MC || !MC.configured) { $("view-loading").style.display="none"; $("view-setup").style.display="block"; return; }
+
+  const { auth, db, storage } = MC;
+  let me = null;
+  let artImages = [];
+  let editUserId = null;
+  let currentStatusFilter = "todos";
+  let articlesCache = [];
+  let raffleCache = [];
+  let currentCatalogStatusFilter = "todos";
+  let catalogCache = [];
+  let catalogCoverUrl = "";
+
+  function msg(el, text, type){
+    if (!el) return;
+    el.textContent = text;
+    el.className = "msg show " + (type || "");
+    if (el._msgTimer) clearTimeout(el._msgTimer);
+    if (type === "ok") el._msgTimer = setTimeout(() => { el.className = "msg"; el.textContent = ""; }, 4000);
+  }
+  function clearMsg(el){ if(el){ el.className="msg"; el.textContent=""; if(el._msgTimer) clearTimeout(el._msgTimer); } }
+  function ts(){ return firebase.firestore.FieldValue.serverTimestamp(); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  function slugify(s){
+    return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").replace(/-+/g,"-");
+  }
+  async function delDoc(col,id,name,after){ if(!confirm(`Excluir “${name||"item"}”? Esta ação não pode ser desfeita.`)) return; try{ await db.collection(col).doc(id).delete(); after(); }catch(e){ alert(e.message);} }
+
+  function traduzirErroFirebase(code, fallback){
+    const erros = {
+      "auth/email-already-in-use": "Este e-mail já está cadastrado no sistema.",
+      "auth/invalid-email": "E-mail inválido.",
+      "auth/weak-password": "Senha muito fraca. Use pelo menos 6 caracteres.",
+      "auth/network-request-failed": "Falha de rede. Verifique sua conexão.",
+      "auth/too-many-requests": "Muitas tentativas. Tente novamente em alguns minutos.",
+      "auth/operation-not-allowed": "Operação não permitida. Contate o administrador.",
+    };
+    return erros[code] || fallback;
+  }
+
+  /* ============================================================
+     AUTENTICAÇÃO
+     ============================================================ */
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) { $("view-loading").style.display="none"; showFlex("view-login"); return; }
+    try {
+      const snap = await db.collection("users").doc(user.uid).get();
+      if (!snap.exists || !MC.ROLES.includes(snap.data().role)) {
+        $("view-loading").style.display="none"; showFlex("view-denied"); return;
+      }
+      me = { uid:user.uid, email:user.email, role:snap.data().role, name:snap.data().name||"" };
+      bootApp();
+    } catch(e){ $("view-loading").style.display="none"; showFlex("view-login"); msg($("loginMsg"), "Falha ao verificar permissão.", "err"); }
+  });
+
+  $("loginBtn").onclick = async () => {
+    clearMsg($("loginMsg"));
+    try { await auth.signInWithEmailAndPassword($("loginEmail").value.trim(), $("loginPass").value); }
+    catch(e) { msg($("loginMsg"), "Usuário ou senha incorretos.", "err"); setTimeout(() => clearMsg($("loginMsg")), 3000); }
+  };
+
+  $("forgotBtn").onclick = async () => {
+    const email = $("loginEmail").value.trim();
+    if(!email) { msg($("loginMsg"), "Digite seu e-mail acima primeiro.", "err"); setTimeout(() => clearMsg($("loginMsg")), 3000); return; }
+    try { await auth.sendPasswordResetEmail(email); msg($("loginMsg"), "Se o e-mail for válido, um link de redefinição foi enviado.", "ok"); setTimeout(() => clearMsg($("loginMsg")), 4000); }
+    catch(e) { msg($("loginMsg"), "Erro ao tentar enviar o link. Tente novamente mais tarde.", "err"); setTimeout(() => clearMsg($("loginMsg")), 3000); }
+  };
+
+  $("logoutBtn").onclick = () => auth.signOut();
+  $("denyLogout").onclick = () => auth.signOut();
+
+  function bootApp(){
+    $("view-loading").style.display="none";
+    show("view-app");
+    $("meName").textContent = me.name || me.email;
+    $("meEmail").textContent = me.name ? me.email : "";
+    $("mePill").textContent = me.role; $("mePill").className = "pill "+me.role;
+    document.querySelectorAll(".admin-only").forEach(el => el.style.display = (me.role==="admin"?"":"none"));
+
+    document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active"); $("panel-"+t.dataset.tab).classList.add("active");
+    });
+
+    document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".overlay").classList.remove("open"));
+
+    // Sorteio e Artigos não são usados pela Meccal por enquanto (ver nota no HTML acima).
+    loadCatalog();
+    wireCatalogModal();
+    loadLeads();
+    $("exportLeadsBtn").onclick = exportLeadsCSV;
+    if (me.role === "admin") loadUsers();
+    wireUserModal();
+
+    document.querySelectorAll("#panel-catalog .status-tab").forEach(t => t.onclick = () => {
+      document.querySelectorAll("#panel-catalog .status-tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      currentCatalogStatusFilter = t.dataset.catStatus;
+      renderCatalog();
+    });
+  }
+
+  /* ============================================================
+     UPLOAD DE IMAGEM (WebP — inline base64 ou Firebase Storage)
+     ============================================================ */
+
+  // Detecta se o navegador consegue exportar canvas como WebP.
+  // Praticamente todo navegador moderno suporta; se não suportar,
+  // caímos de volta pra JPEG automaticamente (ver fallback abaixo).
+  function canvasSupportsWebP(){
+    const c = document.createElement("canvas");
+    c.width = c.height = 1;
+    return c.toDataURL("image/webp").indexOf("data:image/webp") === 0;
+  }
+  const WEBP_OK = canvasSupportsWebP();
+
+  // Modo inline (sem Storage): converte pra WebP e devolve um data URL
+  function compressToWebPDataURL(file, maxW=900, quality=0.75){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.onload = () => {
+          const scale = Math.min(1, maxW / img.width);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width * scale; canvas.height = img.height * scale;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const mime = WEBP_OK ? "image/webp" : "image/jpeg";
+          resolve(canvas.toDataURL(mime, quality));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Modo Storage: converte pra WebP e devolve um Blob (arquivo físico .webp)
+  function compressToWebPBlob(file, maxDim=1920, quality=0.82){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          if (w >= h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else if (h > w && h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+          const canvas = document.createElement("canvas");
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          const mime = WEBP_OK ? "image/webp" : "image/jpeg";
+          canvas.toBlob((blob) => resolve({ blob, mime }), mime, quality);
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadCoverImage(file, progEl, onUrl){
+    if (!file) return;
+
+    // Modo sem Storage (plano gratuito/Spark): converte pra WebP e guarda
+    // como data URL direto no documento do artigo no Firestore.
+    if (MC.IMAGE_MODE === "inline" || !storage) {
+      progEl.classList.add("show"); const bar = progEl.querySelector(".bar"); bar.style.width = "30%";
+      try {
+        const url = await compressToWebPDataURL(file);
+        if (url.length > 700 * 1024) { alert("Imagem muito grande mesmo após compressão. Tente uma imagem menor."); }
+        else { onUrl(url); }
+        bar.style.width = "100%";
+      } catch(e) { alert("Erro ao processar a imagem."); }
+      setTimeout(() => { progEl.classList.remove("show"); bar.style.width = "0%"; }, 250);
+      return;
+    }
+
+    // Modo Storage (plano Blaze): converte pra WebP físico e sobe o Blob
+    progEl.classList.add("show"); const bar = progEl.querySelector(".bar");
+    try {
+      const { blob, mime } = await compressToWebPBlob(file);
+      const ext = mime === "image/webp" ? "webp" : "jpg";
+      const path = `articles/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const task = storage.ref(path).put(blob, { contentType: mime });
+      await new Promise((res, rej) => {
+        task.on("state_changed",
+          s => { bar.style.width = Math.round((s.bytesTransferred/s.totalBytes)*100)+"%"; },
+          err => { alert(err.message); rej(); },
+          async () => { const url = await task.snapshot.ref.getDownloadURL(); onUrl(url); res(); }
+        );
+      });
+    } catch(e) { alert("Erro ao otimizar e subir a imagem."); }
+    bar.style.width = "0%"; progEl.classList.remove("show");
+  }
+
+  /* ============================================================
+     SORTEIO SOBECC
+     ============================================================ */
+  async function loadRaffle(){
+    const rows = $("raffleRows");
+    rows.innerHTML = `<tr><td class="empty-row" colspan="8">Carregando cadastros…</td></tr>`;
+    try {
+      const snap = await db.collection("sorteio_participantes").orderBy("createdAt", "desc").get();
+      raffleCache = [];
+      snap.forEach(doc => raffleCache.push({ id: doc.id, ...doc.data() }));
+      renderRaffle();
+      renderRaffleWinners();
+    } catch(e) {
+      rows.innerHTML = `<tr><td class="empty-row" colspan="8">Erro ao carregar: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderRaffle(){
+    const rows = $("raffleRows");
+    $("raffleCountInfo").textContent = raffleCache.length
+      ? `${raffleCache.length} cadastro(s) recebido(s) — ${raffleCache.filter(p=>p.sorteado).length} já sorteado(s).`
+      : "";
+    if (!raffleCache.length) { rows.innerHTML = `<tr><td class="empty-row" colspan="8">Nenhum cadastro ainda.</td></tr>`; return; }
+    rows.innerHTML = "";
+    raffleCache.forEach(p => {
+      const dateStr = p.createdAt ? new Date(p.createdAt.seconds*1000).toLocaleDateString('pt-BR') : "—";
+      const tr = document.createElement("tr");
+      if (p.sorteado) tr.style.background = "#eef3fa";
+      tr.innerHTML = `
+        <td><b>${esc(p.nome||"—")}</b></td>
+        <td>${esc(p.cidade||"—")}${p.estado ? "/" + esc(p.estado) : ""}</td>
+        <td>${esc(p.hospitalClinica||"—")}</td>
+        <td>${esc(p.profissao||"—")}${p.cargo ? "<br><span style=\"font-size:11px;color:#9a9c9d\">" + esc(p.cargo) + "</span>" : ""}</td>
+        <td>${esc(p.celular||"—")}<br><span style="font-size:11px;color:#9a9c9d">${esc(p.email||"")}</span></td>
+        <td>${dateStr}</td>
+        <td>${p.sorteado ? '<span class="badge-status publicado">🏆 Ganhador</span>' : '<span class="badge-status rascunho">Participante</span>'}</td>
+        <td><div class="act"><button class="icon-btn danger del-raffle" data-id="${p.id}">Excluir</button></div></td>`;
+      rows.appendChild(tr);
+    });
+    rows.querySelectorAll(".del-raffle").forEach(b => b.onclick = () => delDoc("sorteio_participantes", b.dataset.id, "cadastro", loadRaffle));
+  }
+
+  function renderRaffleWinners(){
+    const wrap = $("raffleWinners");
+    const winners = raffleCache.filter(p => p.sorteado);
+    if (!winners.length) { wrap.style.display = "none"; wrap.innerHTML = ""; return; }
+    wrap.style.display = "flex";
+    wrap.innerHTML = '<div class="raffle-winners-title">🏆 Ganhadores sorteados</div>'
+      + winners.map(w => `
+        <div class="raffle-winner-item">
+          <span class="trophy">🎉</span>
+          <div>
+            <div class="name">${esc(w.nome)}</div>
+            <div class="contact">${esc(w.celular||w.email||"")}${w.hospitalClinica ? " · " + esc(w.hospitalClinica) : ""}${w.cidade ? " · " + esc(w.cidade) + (w.estado ? "/" + esc(w.estado) : "") : ""}</div>
+          </div>
+        </div>`).join("");
+  }
+
+  async function drawWinners(){
+    const n = Math.max(1, parseInt($("raffleCount").value, 10) || 1);
+    const pool = raffleCache.filter(p => !p.sorteado);
+    if (!pool.length) { alert('Todos os cadastrados já foram sorteados. Clique em "Zerar sorteio" para sortear de novo entre todos.'); return; }
+    if (n > pool.length) { alert(`Só há ${pool.length} participante(s) ainda não sorteado(s).`); return; }
+
+    // Fisher-Yates shuffle
+    const shuffled = [...pool];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const chosen = shuffled.slice(0, n);
+    if (!confirm(`Sortear ${chosen.length} ganhador(es) agora?`)) return;
+
+    $("drawBtn").disabled = true;
+    try {
+      const batch = db.batch();
+      chosen.forEach(w => {
+        batch.update(db.collection("sorteio_participantes").doc(w.id), { sorteado: true, dataSorteio: ts() });
+      });
+      await batch.commit();
+      await loadRaffle();
+    } catch(e) { alert("Erro ao sortear: " + e.message); }
+    $("drawBtn").disabled = false;
+  }
+
+  async function resetRaffle(){
+    const winners = raffleCache.filter(p => p.sorteado);
+    if (!winners.length) { alert("Ainda não há nenhum ganhador sorteado."); return; }
+    if (!confirm('Isso remove a marcação de "ganhador" de todos os participantes, permitindo sortear do zero entre todo mundo de novo. Continuar?')) return;
+    try {
+      const batch = db.batch();
+      winners.forEach(p => batch.update(db.collection("sorteio_participantes").doc(p.id), { sorteado: false, dataSorteio: null }));
+      await batch.commit();
+      await loadRaffle();
+    } catch(e) { alert("Erro ao zerar: " + e.message); }
+  }
+
+  function exportRaffleCSV(){
+    if (!raffleCache.length) return alert("Nenhum cadastro para exportar.");
+    let csv = "Nome,Cidade,Estado,Hospital/Clínica,Profissão,Cargo,Email,Celular,Data,Status\n";
+    raffleCache.forEach(p => {
+      const d = p.createdAt ? new Date(p.createdAt.seconds*1000) : null;
+      const dateStr = d ? d.toLocaleDateString('pt-BR') : "";
+      const status = p.sorteado ? "Ganhador" : "Participante";
+      const clean = (v) => (v || "").replace(/"/g, '""');
+      csv += `"${clean(p.nome)}","${clean(p.cidade)}","${clean(p.estado)}","${clean(p.hospitalClinica)}","${clean(p.profissao)}","${clean(p.cargo)}","${clean(p.email)}","${clean(p.celular)}","${dateStr}","${status}"\n`;
+    });
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = `Meccal_Sorteio_${new Date().toISOString().slice(0,10)}.csv`;
+    link.style.visibility = "hidden"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }
+
+  /* ============================================================
+     ARTIGOS
+     ============================================================ */
+  async function loadArticles(){
+    const rows = $("articleRows");
+    rows.innerHTML = `<tr><td class="empty-row" colspan="5">Carregando artigos…</td></tr>`;
+    try {
+      const snap = await db.collection("articles").orderBy("createdAt", "desc").get();
+      articlesCache = [];
+      snap.forEach(doc => articlesCache.push({ id: doc.id, ...doc.data() }));
+      renderArticles();
+    } catch(e) {
+      rows.innerHTML = `<tr><td class="empty-row" colspan="5">Erro ao carregar artigos: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderArticles(){
+    const rows = $("articleRows");
+    const list = articlesCache.filter(a => currentStatusFilter==="todos" || (a.status||"rascunho")===currentStatusFilter);
+    if (!list.length) { rows.innerHTML = `<tr><td class="empty-row" colspan="5">Nenhum artigo encontrado.</td></tr>`; return; }
+    rows.innerHTML = "";
+    list.forEach(a => {
+      const status = a.status || "rascunho";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${(a.images && a.images[0]) || a.imageUrl ? `<img class="thumb" src="${esc((a.images && a.images[0]) || a.imageUrl)}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:#9a9c9d;text-align:center;">SEM CAPA</div>`}</td>
+        <td><b>${esc(a.title||"(sem título)")}</b></td>
+        <td>${esc(a.category||"—")}</td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          <div class="act">
+            <button class="icon-btn edit-art" data-id="${a.id}">Editar</button>
+            ${status !== "arquivado"
+              ? `<button class="icon-btn archive-art" data-id="${a.id}">Arquivar</button>`
+              : `<button class="icon-btn unarchive-art" data-id="${a.id}">Reativar</button>`}
+            <button class="icon-btn danger del-art" data-id="${a.id}">Excluir</button>
+          </div>
+        </td>`;
+      rows.appendChild(tr);
+    });
+
+    rows.querySelectorAll(".edit-art").forEach(b => b.onclick = () => {
+      const a = articlesCache.find(x => x.id === b.dataset.id);
+      openArticle(b.dataset.id, a || {});
+    });
+    rows.querySelectorAll(".archive-art").forEach(b => b.onclick = () => setArticleStatus(b.dataset.id, "arquivado"));
+    rows.querySelectorAll(".unarchive-art").forEach(b => b.onclick = () => setArticleStatus(b.dataset.id, "publicado"));
+    rows.querySelectorAll(".del-art").forEach(b => b.onclick = () => delDoc("articles", b.dataset.id, "artigo", loadArticles));
+  }
+
+  async function setArticleStatus(id, status){
+    try { await db.collection("articles").doc(id).update({ status, updatedAt: ts(), updatedBy: me.email }); loadArticles(); }
+    catch(e) { alert(e.message); }
+  }
+
+  function openArticle(id, a){
+    clearMsg($("artMsg"));
+    $("artModalTitle").textContent = id ? "Editar artigo" : "Novo artigo";
+    $("artId").value = id || "";
+    $("artTitle").value = a.title || "";
+    $("artCategory").value = a.category || "";
+    $("artExcerpt").value = a.excerpt || "";
+    $("artContent").value = a.content || "";
+    $("artStatus").value = a.status || "rascunho";
+    // Compatibilidade: artigos antigos têm um único "imageUrl"; novos usam "images" (array até 5)
+    artImages = Array.isArray(a.images) ? a.images.slice(0, 5) : (a.imageUrl ? [a.imageUrl] : []);
+    renderArtThumbs();
+    $("ovArticle").classList.add("open");
+  }
+
+  function renderArtThumbs(){
+    const wrap = $("artThumb");
+    wrap.innerHTML = artImages.map((url, i) => `
+      <div class="t">
+        ${i === 0 ? '<span class="cover-badge">Capa</span>' : ''}
+        <img src="${url}">
+        <button class="del" type="button" data-i="${i}">×</button>
+        <div class="reorder">
+          <button type="button" class="mv-left" data-i="${i}" ${i === 0 ? "disabled" : ""}>‹</button>
+          <button type="button" class="mv-right" data-i="${i}" ${i === artImages.length - 1 ? "disabled" : ""}>›</button>
+        </div>
+      </div>
+    `).join("");
+    wrap.querySelectorAll(".del").forEach(b => b.onclick = () => {
+      artImages.splice(Number(b.dataset.i), 1);
+      renderArtThumbs();
+    });
+    wrap.querySelectorAll(".mv-left").forEach(b => b.onclick = () => {
+      const i = Number(b.dataset.i);
+      [artImages[i - 1], artImages[i]] = [artImages[i], artImages[i - 1]];
+      renderArtThumbs();
+    });
+    wrap.querySelectorAll(".mv-right").forEach(b => b.onclick = () => {
+      const i = Number(b.dataset.i);
+      [artImages[i], artImages[i + 1]] = [artImages[i + 1], artImages[i]];
+      renderArtThumbs();
+    });
+  }
+
+  async function saveArticle(){
+    if (!$("artTitle").value.trim()) return msg($("artMsg"), "O título é obrigatório.", "err");
+    const data = {
+      title: $("artTitle").value.trim(),
+      slug: slugify($("artTitle").value.trim()),
+      category: $("artCategory").value.trim(),
+      excerpt: $("artExcerpt").value.trim(),
+      content: $("artContent").value.trim(),
+      images: artImages,
+      imageUrl: artImages[0] || "", // mantido por compatibilidade com registros antigos
+      status: $("artStatus").value,
+      updatedAt: ts(),
+      updatedBy: me.email,
+    };
+    try {
+      if ($("artId").value) await db.collection("articles").doc($("artId").value).update(data);
+      else await db.collection("articles").add({ ...data, createdAt: ts(), createdBy: me.email });
+      msg($("artMsg"), "Artigo salvo com sucesso.", "ok");
+      loadArticles();
+      setTimeout(() => $("ovArticle").classList.remove("open"), 900);
+    } catch(e) { msg($("artMsg"), e.message, "err"); }
+  }
+
+  function wireArticleModal(){
+    $("addArticle").onclick = () => openArticle(null, {});
+    $("artSave").onclick = saveArticle;
+    $("artUpZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("artFile").click(); };
+    $("artFile").onchange = (e) => {
+      const f = e.target.files[0];
+      if (!f) return;
+      if (artImages.length >= 5) { alert("Máximo de 5 imagens por artigo. Remova uma para adicionar outra."); e.target.value = ""; return; }
+      uploadCoverImage(f, $("artProg"), (url) => {
+        artImages.push(url);
+        renderArtThumbs();
+      });
+      e.target.value = "";
+    };
+  }
+
+  /* ============================================================
+     CATÁLOGO DE PRODUTOS
+     ============================================================ */
+  async function loadCatalog(){
+    const rows = $("catalogRows");
+    rows.innerHTML = `<tr><td class="empty-row" colspan="7">Carregando máquinas…</td></tr>`;
+    try {
+      const snap = await db.collection("maquinas").orderBy("createdAt", "desc").get();
+      catalogCache = [];
+      snap.forEach(doc => catalogCache.push({ id: doc.id, ...doc.data() }));
+      renderCatalog();
+    } catch(e) {
+      rows.innerHTML = `<tr><td class="empty-row" colspan="7">Erro ao carregar máquinas: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  const FAMILIA_LABEL = { "metalurgia":"Metalurgia", "construcao-civil":"Construção Civil" };
+  const SELO_LABEL = { "seminovo":"Seminovo", "promocao":"Promoção" };
+
+  function renderCatalog(){
+    const rows = $("catalogRows");
+    const list = catalogCache.filter(a => currentCatalogStatusFilter==="todos" || (a.status||"rascunho")===currentCatalogStatusFilter);
+    if (!list.length) { rows.innerHTML = `<tr><td class="empty-row" colspan="7">Nenhuma máquina encontrada.</td></tr>`; return; }
+    rows.innerHTML = "";
+    list.forEach(a => {
+      const status = a.status || "rascunho";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${a.imageUrl ? `<img class="thumb" src="${esc(a.imageUrl)}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:#9a9c9d;text-align:center;">SEM IMAGEM</div>`}</td>
+        <td><b>${esc(a.title||"(sem modelo)")}</b></td>
+        <td>${esc(FAMILIA_LABEL[a.familia]||"—")}</td>
+        <td>${esc(a.tipo||"—")}</td>
+        <td>${a.selo ? esc(SELO_LABEL[a.selo]||a.selo) : "—"}</td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          <div class="act">
+            <button class="icon-btn edit-cat" data-id="${a.id}">Editar</button>
+            ${status !== "arquivado"
+              ? `<button class="icon-btn archive-cat" data-id="${a.id}">Arquivar</button>`
+              : `<button class="icon-btn unarchive-cat" data-id="${a.id}">Reativar</button>`}
+            <button class="icon-btn danger del-cat" data-id="${a.id}">Excluir</button>
+          </div>
+        </td>`;
+      rows.appendChild(tr);
+    });
+
+    rows.querySelectorAll(".edit-cat").forEach(b => b.onclick = () => {
+      const a = catalogCache.find(x => x.id === b.dataset.id);
+      openCatalogItem(b.dataset.id, a || {});
+    });
+    rows.querySelectorAll(".archive-cat").forEach(b => b.onclick = () => setCatalogStatus(b.dataset.id, "arquivado"));
+    rows.querySelectorAll(".unarchive-cat").forEach(b => b.onclick = () => setCatalogStatus(b.dataset.id, "publicado"));
+    rows.querySelectorAll(".del-cat").forEach(b => b.onclick = () => delDoc("maquinas", b.dataset.id, "máquina", loadCatalog));
+  }
+
+  async function setCatalogStatus(id, status){
+    try { await db.collection("maquinas").doc(id).update({ status, updatedAt: ts(), updatedBy: me.email }); loadCatalog(); }
+    catch(e) { alert(e.message); }
+  }
+
+  function openCatalogItem(id, a){
+    clearMsg($("catMsg"));
+    $("catModalTitle").textContent = id ? "Editar máquina" : "Nova máquina";
+    $("catId").value = id || "";
+    $("catTitle").value = a.title || "";
+    $("catFamilia").value = a.familia || "";
+    $("catTipo").value = a.tipo || "";
+    $("catSelo").value = a.selo || "";
+    $("catExcerpt").value = a.excerpt || "";
+    $("catDescription").value = a.description || "";
+    $("catSpecs").value = a.specs || "";
+    $("catStatus").value = a.status || "rascunho";
+    catalogCoverUrl = a.imageUrl || "";
+    $("catThumb").innerHTML = catalogCoverUrl
+      ? `<div class="t"><img src="${catalogCoverUrl}"><button class="del" type="button">×</button></div>`
+      : "";
+    const delBtn = $("catThumb").querySelector(".del");
+    if (delBtn) delBtn.onclick = () => { catalogCoverUrl = ""; $("catThumb").innerHTML = ""; };
+    $("ovCatalog").classList.add("open");
+  }
+
+  async function saveCatalogItem(){
+    if (!$("catTitle").value.trim()) return msg($("catMsg"), "O modelo é obrigatório.", "err");
+    if (!$("catFamilia").value) return msg($("catMsg"), "Selecione a família (Metalurgia ou Construção Civil).", "err");
+    const data = {
+      title: $("catTitle").value.trim(),
+      familia: $("catFamilia").value,
+      tipo: $("catTipo").value.trim(),
+      selo: $("catSelo").value,
+      excerpt: $("catExcerpt").value.trim(),
+      description: $("catDescription").value.trim(),
+      specs: $("catSpecs").value.trim(),
+      imageUrl: catalogCoverUrl,
+      status: $("catStatus").value,
+      updatedAt: ts(),
+      updatedBy: me.email,
+    };
+    try {
+      if ($("catId").value) await db.collection("maquinas").doc($("catId").value).update(data);
+      else await db.collection("maquinas").add({ ...data, createdAt: ts(), createdBy: me.email });
+      msg($("catMsg"), "Máquina salva com sucesso.", "ok");
+      loadCatalog();
+      setTimeout(() => $("ovCatalog").classList.remove("open"), 900);
+    } catch(e) { msg($("catMsg"), e.message, "err"); }
+  }
+
+  function wireCatalogModal(){
+    $("addCatalogItem").onclick = () => openCatalogItem(null, {});
+    $("catSave").onclick = saveCatalogItem;
+    $("catUpZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("catFile").click(); };
+    $("catFile").onchange = (e) => {
+      const f = e.target.files[0];
+      if (f) uploadCoverImage(f, $("catProg"), (url) => {
+        catalogCoverUrl = url;
+        $("catThumb").innerHTML = `<div class="t"><img src="${url}"><button class="del" type="button">×</button></div>`;
+        $("catThumb").querySelector(".del").onclick = () => { catalogCoverUrl = ""; $("catThumb").innerHTML = ""; };
+      });
+    };
+  }
+
+  /* ============================================================
+     MENSAGENS (LEADS) — recebidas pelo formulário de contato
+     ============================================================ */
+  let leadsCache = [];
+  let leadsActivePage = 0;
+  let leadsArchivedPage = 0;
+  let leadsActiveAll = [];
+  let leadsArchivedAll = [];
+  const LEADS_PAGE = 50;
+
+  function buildLeadRow(l, isArchived){
+    const dateStr = l.createdAt ? new Date(l.createdAt.seconds * 1000).toLocaleDateString('pt-BR', {day:'2-digit', month:'long'}) : "Sem data";
+    const hourStr = l.createdAt ? new Date(l.createdAt.seconds * 1000).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'}) : "";
+    const phone = l.phone ? `<br><span style="font-size:11px;color:#9a9c9d">Tel: ${esc(l.phone)}</span>` : "";
+    const email = l.email ? `<br><span style="font-size:11px;color:#9a9c9d">${esc(l.email)}</span>` : "";
+    const statusSelect = `
+      <select class="status-select" data-id="${l.id}" ${isArchived ? "disabled" : ""}>
+        <option value="novo" ${!l.status || l.status==="novo" ? "selected" : ""}>Novo</option>
+        <option value="lido" ${l.status==="lido" ? "selected" : ""}>Lido</option>
+        <option value="contatado" ${l.status==="contatado" ? "selected" : ""}>Contatado</option>
+        <option value="nao_responder" ${l.status==="nao_responder" ? "selected" : ""}>Não responder</option>
+      </select>`;
+    const actBtns = isArchived
+      ? `<button class="icon-btn restore-lead" data-id="${l.id}">Restaurar</button>
+         <button class="icon-btn danger del-lead" data-id="${l.id}">Excluir</button>`
+      : `<button class="icon-btn view-lead" data-id="${l.id}">Ver</button>
+         <button class="icon-btn archive-lead" data-id="${l.id}">Arquivar</button>`;
+    return { dateStr, row: `<tr>
+      <td><b style="font-size:.875rem">${esc(l.name)}</b> <span style="font-size:10px;color:#9a9c9d;margin-left:8px">${hourStr}</span>${phone}${email}</td>
+      <td><div style="font-size:12px;margin-bottom:4px">Assunto: <b>${esc(l.subject || "—")}</b></div>
+          <div style="font-size:11px;color:#9a9c9d;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(l.message)}">"${esc(l.message || "")}"</div></td>
+      <td style="text-align:right"><div style="margin-bottom:8px">${statusSelect}</div>
+          <div class="act" style="justify-content:flex-end">${actBtns}</div></td>
+    </tr>` };
+  }
+
+  function renderLeadsTable(docs, isArchived, page){
+    const slice = docs.slice(0, (page + 1) * LEADS_PAGE);
+    let html = "", currentDate = null;
+    if (!slice.length) return `<tr><td class="empty-row" colspan="3">Nenhum registro encontrado.</td></tr>`;
+    slice.forEach(l => {
+      const { dateStr, row } = buildLeadRow(l, isArchived);
+      if (dateStr !== currentDate) { html += `<tr class="date-divider"><td colspan="3">${dateStr}</td></tr>`; currentDate = dateStr; }
+      html += row;
+    });
+    return html;
+  }
+
+  function wireLeadsButtons(){
+    document.querySelectorAll(".status-select:not([disabled])").forEach(sel => {
+      sel.onchange = async () => {
+        try { await db.collection("leads").doc(sel.dataset.id).update({ status: sel.value }); updateUnreadBadge(); }
+        catch(e) { alert("Erro ao atualizar status."); }
+      };
+    });
+    document.querySelectorAll(".view-lead").forEach(b => b.onclick = () => {
+      const l = leadsActiveAll.find(x => x.id === b.dataset.id) || leadsArchivedAll.find(x => x.id === b.dataset.id);
+      if (l) openLeadModal(b.dataset.id, l);
+    });
+    document.querySelectorAll(".archive-lead").forEach(b => b.onclick = async () => {
+      if (confirm("Mover mensagem para arquivados?")) { await db.collection("leads").doc(b.dataset.id).update({ archived: true }); loadLeads(); }
+    });
+    document.querySelectorAll(".restore-lead").forEach(b => b.onclick = async () => {
+      await db.collection("leads").doc(b.dataset.id).update({ archived: false }); loadLeads();
+    });
+    document.querySelectorAll(".del-lead").forEach(b => b.onclick = () => delDoc("leads", b.dataset.id, "mensagem", loadLeads));
+  }
+
+  function updateLeadsLoadMore(){
+    const shown = Math.min((leadsActivePage + 1) * LEADS_PAGE, leadsActiveAll.length);
+    const total = leadsActiveAll.length;
+    const hasMore = shown < total;
+    $("leadsLoadMore").style.display = hasMore ? "block" : "none";
+    if (hasMore) $("leadsCount").textContent = `Exibindo ${shown} de ${total} mensagens`;
+  }
+
+  function updateUnreadBadge(){
+    const unread = leadsActiveAll.filter(l => !l.status || l.status === "novo").length;
+    const badge = $("unreadBadge");
+    if (unread > 0) { badge.style.display = "inline-block"; badge.textContent = unread; }
+    else { badge.style.display = "none"; }
+  }
+
+  async function loadLeads(){
+    const activeRows = $("leadsListRows");
+    const archivedRows = $("archivedLeadsListRows");
+    leadsActivePage = 0; leadsArchivedPage = 0;
+    activeRows.innerHTML = `<tr><td class="empty-row" colspan="3">Carregando mensagens…</td></tr>`;
+    archivedRows.innerHTML = `<tr><td class="empty-row" colspan="3">Carregando…</td></tr>`;
+    try {
+      const snap = await db.collection("leads").orderBy("createdAt", "desc").get();
+      if (snap.empty) {
+        activeRows.innerHTML = `<tr><td class="empty-row" colspan="3">Nenhuma mensagem recebida.</td></tr>`;
+        archivedRows.innerHTML = `<tr><td class="empty-row" colspan="3">Nenhuma mensagem arquivada.</td></tr>`;
+        leadsCache = []; leadsActiveAll = []; leadsArchivedAll = [];
+        updateUnreadBadge();
+        return;
+      }
+      const allDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      leadsActiveAll = allDocs.filter(l => !l.archived);
+      leadsArchivedAll = allDocs.filter(l => l.archived);
+      leadsCache = allDocs;
+
+      activeRows.innerHTML = renderLeadsTable(leadsActiveAll, false, leadsActivePage);
+      archivedRows.innerHTML = renderLeadsTable(leadsArchivedAll, true, leadsArchivedPage);
+      updateLeadsLoadMore();
+      updateUnreadBadge();
+
+      $("leadsLoadMoreBtn").onclick = () => {
+        leadsActivePage++;
+        activeRows.innerHTML = renderLeadsTable(leadsActiveAll, false, leadsActivePage);
+        wireLeadsButtons(); updateLeadsLoadMore();
+      };
+
+      const archMore = leadsArchivedAll.length > LEADS_PAGE;
+      $("archivedLoadMore").style.display = archMore ? "block" : "none";
+      $("archivedLoadMoreBtn").onclick = () => {
+        leadsArchivedPage++;
+        archivedRows.innerHTML = renderLeadsTable(leadsArchivedAll, true, leadsArchivedPage);
+        const shown = Math.min((leadsArchivedPage + 1) * LEADS_PAGE, leadsArchivedAll.length);
+        $("archivedLoadMore").style.display = shown < leadsArchivedAll.length ? "block" : "none";
+        wireLeadsButtons();
+      };
+
+      wireLeadsButtons();
+    } catch(e) {
+      activeRows.innerHTML = `<tr><td class="empty-row" colspan="3">Erro ao carregar: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function exportLeadsCSV(){
+    const data = leadsCache.filter(l => !l.archived);
+    if (!data.length) return alert("Nenhuma mensagem para exportar.");
+    let csv = "Data,Hora,Nome,E-mail,Telefone,Assunto,Mensagem,Status\n";
+    data.forEach(l => {
+      const d = l.createdAt ? new Date(l.createdAt.seconds * 1000) : null;
+      const dateStr = d ? d.toLocaleDateString('pt-BR') : "";
+      const timeStr = d ? d.toLocaleTimeString('pt-BR') : "";
+      const status = l.status === "contatado" ? "Contatado" : (l.status === "nao_responder" ? "Não responder" : (l.status === "lido" ? "Lido" : "Novo"));
+      const clean = (v) => (v || "").replace(/"/g, '""');
+      csv += `"${dateStr}","${timeStr}","${clean(l.name)}","${clean(l.email)}","${clean(l.phone)}","${clean(l.subject)}","${clean(l.message)}","${status}"\n`;
+    });
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = `Meccal_Mensagens_${new Date().toISOString().slice(0,10)}.csv`;
+    link.style.visibility = "hidden"; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }
+
+  async function openLeadModal(id, lead){
+    const dateStr = lead.createdAt ? new Date(lead.createdAt.seconds * 1000).toLocaleString('pt-BR') : "Sem data";
+    $("ldName").textContent = lead.name || "—";
+    $("ldEmail").textContent = lead.email || "—";
+    $("ldPhone").textContent = lead.phone || "—";
+    $("ldDate").textContent = dateStr;
+    $("ldSubject").textContent = lead.subject || "—";
+    $("ldMessage").textContent = lead.message || "Sem mensagem de texto.";
+
+    const cleanPhone = (lead.phone || "").replace(/\D/g, '');
+    $("ldWhatsApp").href = cleanPhone ? `https://wa.me/55${cleanPhone}` : "#";
+    $("ldMailTo").href = lead.email ? `mailto:${lead.email}?subject=Meccal - Retorno de contato` : "#";
+
+    $("ovLead").classList.add("open");
+
+    if (lead.status === "novo") {
+      try { await db.collection("leads").doc(id).update({ status: "lido" }); loadLeads(); } catch(e) {}
+    }
+  }
+
+  /* ============================================================
+     USUÁRIOS (somente admin)
+     ============================================================ */
+  async function loadUsers(){
+    const rows = $("userRows");
+    rows.innerHTML = `<tr><td class="empty-row" colspan="2">Carregando…</td></tr>`;
+    let snap;
+    try { snap = await db.collection("users").get(); }
+    catch(e) { rows.innerHTML = `<tr><td class="empty-row" colspan="2">Erro ao carregar usuários: ${esc(e.message)}</td></tr>`; return; }
+    if (!snap || snap.empty) { rows.innerHTML = `<tr><td class="empty-row" colspan="2">Nenhum usuário cadastrado.</td></tr>`; return; }
+    rows.innerHTML = "";
+    snap.forEach(doc => {
+      const u = doc.data(); const isMe = doc.id === me.uid;
+      const displayName = u.name || u.email || doc.id;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><b>${esc(displayName)}</b><span class="pill ${u.role}">${esc(u.role||"")}</span>${isMe?'<span style="font-size:.7rem;color:#9a9c9d">(você)</span>':""}</div>
+          ${u.name ? `<div style="font-size:.75rem;color:#6b6d6e;margin-top:.15rem">${esc(u.email||"")}</div>` : ""}
+        </td>
+        <td><div class="act"><button class="icon-btn editUser" ${isMe?"disabled":""}>Editar</button><button class="icon-btn danger rmUser" ${isMe?"disabled":""}>Remover</button></div></td>`;
+      if (!isMe) {
+        tr.querySelector(".editUser").onclick = () => openEditUser(doc.id, u);
+        tr.querySelector(".rmUser").onclick = () => removeUser(doc.id, displayName);
+      }
+      rows.appendChild(tr);
+    });
+  }
+
+  function wireUserModal(){
+    $("addUser").onclick = () => { clearMsg($("userMsg")); $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="editor"; $("ovUser").classList.add("open"); };
+    $("uSave").onclick = createUser;
+    $("editUserSave").onclick = async () => {
+      if (!editUserId) return;
+      const name = $("editUserName").value.trim(), role = $("editUserRole").value;
+      if (!name) return msg($("editUserMsg"), "Informe o nome.", "err");
+      try { await db.collection("users").doc(editUserId).update({ name, role, updatedAt: ts(), updatedBy: me.email }); $("ovEditUser").classList.remove("open"); loadUsers(); }
+      catch(e) { msg($("editUserMsg"), e.message, "err"); }
+    };
+  }
+
+  function openEditUser(uid, u){
+    editUserId = uid;
+    $("editUserName").value = u.name || "";
+    $("editUserEmail").value = u.email || "";
+    $("editUserRole").value = u.role || "editor";
+    clearMsg($("editUserMsg"));
+    $("ovEditUser").classList.add("open");
+  }
+
+  async function removeUser(uid, displayName){
+    if (!confirm(`Remover acesso de ${displayName}?\n\nIsso remove o usuário da lista do painel. A conta de login permanece no Firebase — se precisar reativar, crie o usuário novamente com o mesmo e-mail.`)) return;
+    try { await db.collection("users").doc(uid).delete(); loadUsers(); }
+    catch(e) { alert("Erro ao remover: " + e.message); }
+  }
+
+  async function createUser(){
+    const name = $("uName").value.trim(), email = $("uEmail").value.trim().toLowerCase(), pass = $("uPass").value, role = $("uRole").value;
+    if (!name || !email || pass.length < 6) return msg($("userMsg"), "Preencha tudo (senha mínima 6 caracteres).", "err");
+    $("uSave").disabled = true;
+    let sec = null;
+    try {
+      // Usa um app Firebase secundário para criar o usuário sem deslogar o admin atual
+      const existing = firebase.apps.find(a => a.name === "secondary");
+      if (existing) await existing.delete();
+      sec = firebase.initializeApp(MC.config, "secondary");
+
+      const cred = await sec.auth().createUserWithEmailAndPassword(email, pass);
+      await db.collection("users").doc(cred.user.uid).set({
+        name, email, role, createdAt: ts(), createdBy: me.email,
+      });
+      await sec.auth().signOut();
+      await sec.delete();
+      sec = null;
+
+      $("ovUser").classList.remove("open");
+      $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="editor";
+      clearMsg($("userMsg"));
+      loadUsers();
+    } catch(e) {
+      msg($("userMsg"), traduzirErroFirebase(e.code, e.message), "err");
+      if (sec) { try { await sec.auth().signOut(); await sec.delete(); } catch(_){} }
+    } finally { $("uSave").disabled = false; }
+  }
+})();
+</script>
+</body>
+</html>
