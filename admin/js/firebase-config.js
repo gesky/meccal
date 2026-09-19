@@ -62,15 +62,15 @@
    e a tela de configuração deve sumir, dando lugar à tela de login.
    ============================================================ */
 
-const CONFIGURED = false; // troque para true depois de colar as chaves abaixo
+const CONFIGURED = true; // troque para true depois de colar as chaves abaixo
 
 const CONFIG = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI.firebaseapp.com",
-  projectId: "COLE_AQUI",
-  storageBucket: "COLE_AQUI.appspot.com",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI",
+  apiKey: "AIzaSyCI9CvOrcy_zwIns0GacIPOehXNYcb_-uA",
+  authDomain: "meccal-8f295.firebaseapp.com",
+  projectId: "meccal-8f295",
+  storageBucket: "meccal-8f295.firebasestorage.app",
+  messagingSenderId: "160293689244",
+  appId: "1:160293689244:web:313d0b0cb35152504f1a59",
 };
 
 // "inline"  → fotos comprimidas e salvas direto no Firestore (sem Storage, sem custo)
