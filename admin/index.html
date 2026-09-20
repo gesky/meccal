@@ -46,6 +46,15 @@
 
   body { font-family:var(--font-sans); background: #f7f7f8; margin:0; }
   h1,h2,h3 { font-family:var(--font-head); }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border-radius:999px; font-family:var(--font-sans); font-weight:700; cursor:pointer; text-decoration:none; transition:background .2s ease, color .2s ease, opacity .2s ease; }
+  .btn-accent-lg { background:var(--blue); color:#fff; border:none; padding:.9rem 1.5rem; font-size:.95rem; }
+  .btn-accent-lg:hover { background:var(--blue-dark); }
+  .btn-outline-blue { background:transparent; color:var(--blue); border:1.5px solid var(--blue); padding:.6rem 1.2rem; font-size:.85rem; }
+  .btn-outline-blue:hover { background:var(--blue); color:#fff; }
 
   .admin-top {
     position: sticky; top: 0; z-index: 40;
@@ -101,7 +110,7 @@
   /* Modal */
   .overlay { position: fixed; inset: 0; background: rgba(20,24,28,.5); display: none; align-items: flex-start; justify-content: center; z-index: 60; padding: 2rem 1rem; overflow-y: auto; }
   .overlay.open { display: flex; }
-  .modal { background: #fff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); width: 100%; max-width: 42rem; margin: auto; }
+  .modal { background: #fff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); width: 100%; max-width: 50rem; margin: auto; }
   .modal-head { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--admin-border); }
   .modal-head h3 { font-size: 1rem; font-weight: 700; margin: 0; color: var(--text); }
   .modal-body { padding: 1.5rem; }
