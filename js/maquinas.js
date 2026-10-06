@@ -136,11 +136,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   MC.db.collection('maquinas')
     .where('status', '==', 'publicado')
-    .orderBy('createdAt', 'desc')
     .get()
     .then(function (snap) {
       allMachines = [];
       snap.forEach(function (doc) { allMachines.push(Object.assign({ id: doc.id }, doc.data())); });
+      allMachines.sort(function (a, b) {
+        var ta = (a.createdAt && a.createdAt.seconds) || 0;
+        var tb = (b.createdAt && b.createdAt.seconds) || 0;
+        return tb - ta;
+      });
       renderGrid();
     })
     .catch(function (err) {
