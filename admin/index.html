@@ -298,7 +298,7 @@
           <h2>Máquinas do catálogo</h2>
           <p class="sub">Cadastre, edite, arquive ou exclua as máquinas exibidas em maquinas.html.</p>
         </div>
-        <button class="btn-sm-solid" id="addCatalogItem">+ Nova máquina</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-sm-solid" id="importCatalog" style="background:#fff;color:#0166AC;border:1px solid #0166AC">Importar catálogo do PDF</button><button class="btn-sm-solid" id="addCatalogItem">+ Nova máquina</button></div>
       </div>
 
       <div class="status-tabs">
@@ -547,6 +547,7 @@
 </div>
 
 <script src="js/firebase-config.js"></script>
+<script src="js/catalogo-seed.js"></script>
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);
@@ -1033,7 +1034,7 @@
       const status = a.status || "rascunho";
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${a.imageUrl ? `<img class="thumb" src="${esc(a.imageUrl)}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:#9a9c9d;text-align:center;">SEM IMAGEM</div>`}</td>
+        <td>${a.imageUrl ? `<img class="thumb" src="${esc(imgSrc(a.imageUrl))}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:#9a9c9d;text-align:center;">SEM IMAGEM</div>`}</td>
         <td><b>${esc(a.title||"(sem modelo)")}</b></td>
         <td>${esc(FAMILIA_LABEL[a.familia]||"—")}</td>
         <td>${esc(a.tipo||"—")}</td>
@@ -1079,7 +1080,7 @@
     $("catStatus").value = a.status || "rascunho";
     catalogCoverUrl = a.imageUrl || "";
     $("catThumb").innerHTML = catalogCoverUrl
-      ? `<div class="t"><img src="${catalogCoverUrl}"><button class="del" type="button">×</button></div>`
+      ? `<div class="t"><img src="${imgSrc(catalogCoverUrl)}"><button class="del" type="button">×</button></div>`
       : "";
     const delBtn = $("catThumb").querySelector(".del");
     if (delBtn) delBtn.onclick = () => { catalogCoverUrl = ""; $("catThumb").innerHTML = ""; };
@@ -1111,7 +1112,33 @@
     } catch(e) { msg($("catMsg"), e.message, "err"); }
   }
 
+  // Imagens do catálogo importado ficam em img/ (raiz do site); o admin está em /admin/
+  function imgSrc(u){ return (u && !/^(https?:|data:|\/|\.\.\/)/.test(u)) ? "../" + u : u; }
+
+  async function importCatalogSeed(){
+    const seed = window.CATALOGO_SEED || [];
+    if (!seed.length) return alert("Lista de máquinas não encontrada (admin/js/catalogo-seed.js).");
+    if (!confirm("Importar " + seed.length + " máquinas do catálogo da construção civil?\nMáquinas que já existem (mesmo código) são puladas, nada é sobrescrito.")) return;
+    const btn = $("importCatalog"); btn.disabled = true;
+    let criadas = 0, puladas = 0;
+    try {
+      const base = Date.now();
+      for (let i = 0; i < seed.length; i++) {
+        const { id, ...m } = seed[i];
+        btn.textContent = "Importando " + (i + 1) + "/" + seed.length + "…";
+        const ref = db.collection("maquinas").doc(id);
+        if ((await ref.get()).exists) { puladas++; continue; }
+        await ref.set({ ...m, createdAt: firebase.firestore.Timestamp.fromMillis(base - i * 1000), updatedAt: ts(), createdBy: me.email, updatedBy: me.email });
+        criadas++;
+      }
+      alert("Pronto! " + criadas + " máquinas criadas, " + puladas + " já existiam.");
+    } catch(e) { alert("Erro na importação: " + e.message); }
+    btn.disabled = false; btn.textContent = "Importar catálogo do PDF";
+    loadCatalog();
+  }
+
   function wireCatalogModal(){
+    $("importCatalog").onclick = importCatalogSeed;
     $("addCatalogItem").onclick = () => openCatalogItem(null, {});
     $("catSave").onclick = saveCatalogItem;
     $("catUpZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("catFile").click(); };
