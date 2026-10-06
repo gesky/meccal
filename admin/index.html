@@ -282,6 +282,7 @@
       <button class="tab" data-tab="articles">Artigos</button>
       -->
       <button class="tab active" data-tab="catalog">Máquinas</button>
+      <button class="tab" data-tab="products">Produtos</button>
       <button class="tab" data-tab="leads">Mensagens <span id="unreadBadge" class="badge-count" style="display:none">0</span></button>
       <button class="tab admin-only" data-tab="users">Usuários & Permissões</button>
     </div>
@@ -326,6 +327,41 @@
       </div>
     </div>
     <!-- ===================== FIM PAINEL MÁQUINAS ===================== -->
+
+    <!-- ===================== PAINEL PRODUTOS (peças de reposição) ===================== -->
+    <div class="panel" id="panel-products">
+      <div class="row-head">
+        <div>
+          <h2>Peças de reposição</h2>
+          <p class="sub">Cadastre as peças exibidas em produtos.html. O botão do site leva ao WhatsApp já citando a peça escolhida.</p>
+        </div>
+        <button class="btn-sm-solid" id="addProduct">+ Nova peça</button>
+      </div>
+
+      <div class="status-tabs">
+        <button class="status-tab active" data-prod-status="todos">Todas</button>
+        <button class="status-tab" data-prod-status="publicado">Publicadas</button>
+        <button class="status-tab" data-prod-status="rascunho">Rascunhos</button>
+        <button class="status-tab" data-prod-status="arquivado">Arquivadas</button>
+      </div>
+
+      <div class="tbl-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th style="width:4.5rem"></th>
+            <th>Peça</th>
+            <th>Código</th>
+            <th>Compatível com</th>
+            <th>Status</th>
+            <th style="text-align:right">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="productRows"></tbody>
+      </table>
+      </div>
+    </div>
+    <!-- ===================== FIM PAINEL PRODUTOS ===================== -->
 
     <!-- ===================== PAINEL MENSAGENS (LEADS) ===================== -->
     <div class="panel" id="panel-leads">
@@ -462,6 +498,45 @@
   </div>
 </div>
 <!-- ===================== FIM MODAL CADASTRO DE MÁQUINA ===================== -->
+
+<!-- ===================== MODAL: CADASTRO DE PEÇA ===================== -->
+<div class="overlay" id="ovProduct">
+  <div class="modal">
+    <div class="modal-head"><h3 id="prodModalTitle">Nova peça</h3><button class="x-btn" data-close>✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="prodId">
+      <div class="grid2">
+        <div class="fld"><label>Nome da peça *</label><input id="prodTitle" placeholder="Ex: Castanha de endireitamento"></div>
+        <div class="fld"><label>Código / referência</label><input id="prodCodigo" placeholder="Ex: CAS-070 (opcional)"></div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label>Categoria</label><input id="prodCategoria" list="prodCategorias" placeholder="Ex: Endireitamento, Corte, Dobra"><datalist id="prodCategorias"></datalist></div>
+        <div class="fld"><label>Compatível com</label><input id="prodCompat" placeholder="Ex: MEC-70, MEC-90 C"></div>
+      </div>
+      <div class="fld"><label>Descrição breve (opcional)</label><textarea id="prodDescription" rows="3" style="resize:vertical" placeholder="Ex: Peça de desgaste, fácil de trocar sem ajuda técnica."></textarea></div>
+      <div class="fld">
+        <label>Foto da peça (convertida automaticamente para WebP)</label>
+        <div class="uploader" id="prodUpZone"><div class="hint">Clique para enviar a imagem (JPG/PNG)</div><input type="file" id="prodFile" accept="image/*"></div>
+        <div class="prog" id="prodProg"><div class="bar"></div></div>
+        <div class="thumbs-edit" id="prodThumb"></div>
+      </div>
+      <div class="fld">
+        <label>Status</label>
+        <select id="prodStatus">
+          <option value="rascunho">Rascunho: não aparece no site</option>
+          <option value="publicado">Publicado: visível na página de Produtos</option>
+          <option value="arquivado">Arquivado: oculto, mas não excluído</option>
+        </select>
+      </div>
+      <div id="prodMsg" class="msg"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="icon-btn" data-close>Cancelar</button>
+      <button class="btn-sm-solid" id="prodSave">Salvar peça</button>
+    </div>
+  </div>
+</div>
+<!-- ===================== FIM MODAL CADASTRO DE PEÇA ===================== -->
 
 <!-- ===================== MODAL: ARTIGO ===================== -->
 <div class="overlay" id="ovArticle">
@@ -645,10 +720,19 @@
     // Sorteio e Artigos não são usados pela Meccal por enquanto (ver nota no HTML acima).
     loadCatalog();
     wireCatalogModal();
+    loadProducts();
+    wireProductModal();
     loadLeads();
     $("exportLeadsBtn").onclick = exportLeadsCSV;
     if (me.role === "admin") loadUsers();
     wireUserModal();
+
+    document.querySelectorAll("#panel-products .status-tab").forEach(t => t.onclick = () => {
+      document.querySelectorAll("#panel-products .status-tab").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      currentProductStatusFilter = t.dataset.prodStatus;
+      renderProducts();
+    });
 
     document.querySelectorAll("#panel-catalog .status-tab").forEach(t => t.onclick = () => {
       document.querySelectorAll("#panel-catalog .status-tab").forEach(x=>x.classList.remove("active"));
@@ -1148,6 +1232,119 @@
         catalogCoverUrl = url;
         $("catThumb").innerHTML = `<div class="t"><img src="${url}"><button class="del" type="button">×</button></div>`;
         $("catThumb").querySelector(".del").onclick = () => { catalogCoverUrl = ""; $("catThumb").innerHTML = ""; };
+      });
+    };
+  }
+
+  /* ============================================================
+     PRODUTOS (peças de reposição), coleção "produtos"
+     ============================================================ */
+  let productCache = [];
+  let currentProductStatusFilter = "todos";
+  let productCoverUrl = "";
+
+  async function loadProducts(){
+    const rows = $("productRows");
+    rows.innerHTML = `<tr><td class="empty-row" colspan="6">Carregando peças…</td></tr>`;
+    try {
+      const snap = await db.collection("produtos").orderBy("createdAt", "desc").get();
+      productCache = [];
+      snap.forEach(doc => productCache.push({ id: doc.id, ...doc.data() }));
+      $("prodCategorias").innerHTML = [...new Set(productCache.map(p => p.categoria).filter(Boolean))]
+        .map(c => `<option value="${esc(c)}">`).join("");
+      renderProducts();
+    } catch(e) {
+      rows.innerHTML = `<tr><td class="empty-row" colspan="6">Erro ao carregar peças: ${esc(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderProducts(){
+    const rows = $("productRows");
+    const list = productCache.filter(a => currentProductStatusFilter==="todos" || (a.status||"rascunho")===currentProductStatusFilter);
+    if (!list.length) { rows.innerHTML = `<tr><td class="empty-row" colspan="6">Nenhuma peça encontrada.</td></tr>`; return; }
+    rows.innerHTML = "";
+    list.forEach(a => {
+      const status = a.status || "rascunho";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${a.imageUrl ? `<img class="thumb" src="${esc(imgSrc(a.imageUrl))}">` : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:9px;color:#9a9c9d;text-align:center;">SEM IMAGEM</div>`}</td>
+        <td><b>${esc(a.title||"(sem nome)")}</b>${a.categoria ? `<br><span style="font-size:11px;color:#9a9c9d">${esc(a.categoria)}</span>` : ""}</td>
+        <td>${esc(a.codigo||"-")}</td>
+        <td>${esc(a.compat||"-")}</td>
+        <td><span class="badge-status ${status}">${status}</span></td>
+        <td>
+          <div class="act">
+            <button class="icon-btn edit-prod" data-id="${a.id}">Editar</button>
+            ${status !== "arquivado"
+              ? `<button class="icon-btn archive-prod" data-id="${a.id}">Arquivar</button>`
+              : `<button class="icon-btn unarchive-prod" data-id="${a.id}">Reativar</button>`}
+            <button class="icon-btn danger del-prod" data-id="${a.id}">Excluir</button>
+          </div>
+        </td>`;
+      rows.appendChild(tr);
+    });
+    rows.querySelectorAll(".edit-prod").forEach(b => b.onclick = () => openProduct(b.dataset.id, productCache.find(x => x.id === b.dataset.id) || {}));
+    rows.querySelectorAll(".archive-prod").forEach(b => b.onclick = () => setProductStatus(b.dataset.id, "arquivado"));
+    rows.querySelectorAll(".unarchive-prod").forEach(b => b.onclick = () => setProductStatus(b.dataset.id, "publicado"));
+    rows.querySelectorAll(".del-prod").forEach(b => b.onclick = () => delDoc("produtos", b.dataset.id, "peça", loadProducts));
+  }
+
+  async function setProductStatus(id, status){
+    try { await db.collection("produtos").doc(id).update({ status, updatedAt: ts(), updatedBy: me.email }); loadProducts(); }
+    catch(e) { alert(e.message); }
+  }
+
+  function openProduct(id, a){
+    clearMsg($("prodMsg"));
+    $("prodModalTitle").textContent = id ? "Editar peça" : "Nova peça";
+    $("prodId").value = id || "";
+    $("prodTitle").value = a.title || "";
+    $("prodCodigo").value = a.codigo || "";
+    $("prodCategoria").value = a.categoria || "";
+    $("prodCompat").value = a.compat || "";
+    $("prodDescription").value = a.description || "";
+    $("prodStatus").value = a.status || "rascunho";
+    productCoverUrl = a.imageUrl || "";
+    $("prodThumb").innerHTML = productCoverUrl
+      ? `<div class="t"><img src="${imgSrc(productCoverUrl)}"><button class="del" type="button">×</button></div>`
+      : "";
+    const delBtn = $("prodThumb").querySelector(".del");
+    if (delBtn) delBtn.onclick = () => { productCoverUrl = ""; $("prodThumb").innerHTML = ""; };
+    $("ovProduct").classList.add("open");
+  }
+
+  async function saveProduct(){
+    if (!$("prodTitle").value.trim()) return msg($("prodMsg"), "O nome da peça é obrigatório.", "err");
+    const data = {
+      title: $("prodTitle").value.trim(),
+      codigo: $("prodCodigo").value.trim(),
+      categoria: $("prodCategoria").value.trim(),
+      compat: $("prodCompat").value.trim(),
+      description: $("prodDescription").value.trim(),
+      imageUrl: productCoverUrl,
+      status: $("prodStatus").value,
+      updatedAt: ts(),
+      updatedBy: me.email,
+    };
+    try {
+      if ($("prodId").value) await db.collection("produtos").doc($("prodId").value).update(data);
+      else await db.collection("produtos").add({ ...data, createdAt: ts(), createdBy: me.email });
+      msg($("prodMsg"), "Peça salva com sucesso.", "ok");
+      loadProducts();
+      setTimeout(() => $("ovProduct").classList.remove("open"), 900);
+    } catch(e) { msg($("prodMsg"), e.message, "err"); }
+  }
+
+  function wireProductModal(){
+    $("addProduct").onclick = () => openProduct(null, {});
+    $("prodSave").onclick = saveProduct;
+    $("prodUpZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("prodFile").click(); };
+    $("prodFile").onchange = (e) => {
+      const f = e.target.files[0];
+      if (f) uploadCoverImage(f, $("prodProg"), (url) => {
+        productCoverUrl = url;
+        $("prodThumb").innerHTML = `<div class="t"><img src="${url}"><button class="del" type="button">×</button></div>`;
+        $("prodThumb").querySelector(".del").onclick = () => { productCoverUrl = ""; $("prodThumb").innerHTML = ""; };
       });
     };
   }

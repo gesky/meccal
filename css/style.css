@@ -713,3 +713,15 @@ body.loading{overflow:hidden;}
   .hero-ctas .btn{width:100%;justify-content:center;}
   .wrap{padding:0 20px;}
 }
+
+/* ---------- Produtos (peças de reposição) ---------- */
+.prod-search{margin-bottom:18px;max-width:520px;}
+.prod-search input{width:100%;padding:14px 18px;border:1px solid var(--border);border-radius:var(--r-md);font:inherit;font-size:15px;background:#fff;color:var(--ink);}
+.prod-search input:focus{outline:none;border-color:var(--blue);}
+.prod-card{cursor:default;display:flex;flex-direction:column;}
+.prod-card .destaque-media img{object-fit:contain;background:#fff;}
+.prod-card .destaque-body{display:flex;flex-direction:column;flex:1;}
+.prod-card .prod-code{font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--blue);margin-bottom:6px;}
+.prod-card .prod-compat{font-size:13.5px;color:var(--ink-soft);margin-bottom:10px;}
+.prod-card .prod-compat b{color:var(--ink);font-weight:600;}
+.prod-card .btn{margin-top:auto;text-align:center;padding:12px 18px;font-size:14px;}
