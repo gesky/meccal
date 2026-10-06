@@ -42,21 +42,34 @@
         rules_version = '2';
         service cloud.firestore {
           match /databases/{database}/documents {
+            function papel() {
+              return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+            }
+            function ehAdmin()   { return request.auth != null && papel() == "admin"; }
+            function ehCatalogo(){ return request.auth != null && papel() in ["admin", "catalogo", "editor"]; }
+            function ehEquipe()  { return request.auth != null && papel() in ["admin", "catalogo", "editor", "atendimento"]; }
+
             match /users/{userId} {
               allow read: if request.auth != null;
-              allow write: if request.auth != null &&
-                get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+              allow write: if ehAdmin();
             }
             match /maquinas/{docId} {
               allow read: if true;
-              allow write: if request.auth != null;
+              allow write: if ehCatalogo();
+            }
+            match /produtos/{docId} {
+              allow read: if true;
+              allow write: if ehCatalogo();
             }
             match /leads/{docId} {
               allow create: if true;
-              allow read, update, delete: if request.auth != null;
+              allow read, update, delete: if ehEquipe();
             }
           }
         }
+
+   Papéis: admin (acesso total), catalogo (Máquinas, Produtos e Mensagens)
+   e atendimento (só Mensagens). O papel antigo "editor" vale como "catalogo".
 
    Pronto — depois disso, atualize a página do painel (admin/index.html)
    e a tela de configuração deve sumir, dando lugar à tela de login.
@@ -91,7 +104,7 @@ const IMAGE_MODE = "inline";
     auth: firebase.auth(),
     db: firebase.firestore(),
     storage: IMAGE_MODE === "storage" ? firebase.storage() : null,
-    ROLES: ["admin", "editor"],
+    ROLES: ["admin", "catalogo", "atendimento", "editor"],
     IMAGE_MODE: IMAGE_MODE,
   };
 })();

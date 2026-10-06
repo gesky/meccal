@@ -68,7 +68,8 @@
 
   .pill { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; border: 1px solid var(--admin-border); color: #6b6d6e; }
   .pill.admin { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .pill.editor { color: var(--blue); border-color: var(--blue); background: #eef3fa; }
+  .pill.editor, .pill.catalogo { color: var(--blue); border-color: var(--blue); background: #eef3fa; }
+  .pill.atendimento { color: #b55400; border-color: var(--orange, #FE7900); background: #fff4e8; }
 
   .admin-shell { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
 
@@ -253,7 +254,7 @@
 <div id="view-denied" class="center-screen" style="display:none">
   <div class="auth-card">
     <h1>Sem permissão de acesso</h1>
-    <p class="muted">Sua conta está autenticada, mas ainda não tem um papel (admin/editor) atribuído. Peça a um administrador para liberar seu acesso.</p>
+    <p class="muted">Sua conta está autenticada, mas ainda não tem uma permissão atribuída. Peça a um administrador para liberar seu acesso.</p>
     <button class="btn btn-outline-blue" id="denyLogout" style="margin-top:1rem">Sair</button>
   </div>
 </div>
@@ -281,7 +282,7 @@
       <button class="tab" data-tab="raffle">Sorteio Sobecc</button>
       <button class="tab" data-tab="articles">Artigos</button>
       -->
-      <button class="tab active" data-tab="catalog">Máquinas</button>
+      <button class="tab" data-tab="catalog">Máquinas</button>
       <button class="tab" data-tab="products">Produtos</button>
       <button class="tab" data-tab="leads">Mensagens <span id="unreadBadge" class="badge-count" style="display:none">0</span></button>
       <button class="tab admin-only" data-tab="users">Usuários & Permissões</button>
@@ -293,7 +294,7 @@
          enviado por você tem esse código completo pra copiar de lá. -->
 
     <!-- ===================== PAINEL MÁQUINAS (catálogo técnico) ===================== -->
-    <div class="panel active" id="panel-catalog">
+    <div class="panel" id="panel-catalog">
       <div class="row-head">
         <div>
           <h2>Máquinas do catálogo</h2>
@@ -587,8 +588,9 @@
       <div class="fld"><label>Senha *</label><input id="uPass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
       <div class="fld"><label>Permissão *</label>
         <select id="uRole">
-          <option value="editor">Editor — edita conteúdo</option>
-          <option value="admin">Admin — acesso total</option>
+          <option value="atendimento">Atendimento: só Mensagens</option>
+          <option value="catalogo">Catálogo: Máquinas, Produtos e Mensagens</option>
+          <option value="admin">Administrador: acesso total</option>
         </select>
       </div>
     </div>
@@ -609,8 +611,9 @@
       <div class="fld"><label>E-mail</label><input id="editUserEmail" type="email" disabled style="background:#f0f0f0;color:#6b6d6e"></div>
       <div class="fld"><label>Permissão *</label>
         <select id="editUserRole">
-          <option value="editor">Editor — edita conteúdo</option>
-          <option value="admin">Admin — acesso total</option>
+          <option value="atendimento">Atendimento: só Mensagens</option>
+          <option value="catalogo">Catálogo: Máquinas, Produtos e Mensagens</option>
+          <option value="admin">Administrador: acesso total</option>
         </select>
       </div>
     </div>
@@ -701,13 +704,31 @@
   $("logoutBtn").onclick = () => auth.signOut();
   $("denyLogout").onclick = () => auth.signOut();
 
+  // Papéis: admin (tudo), catalogo (máquinas, produtos, mensagens), atendimento (só mensagens).
+  // "editor" é o papel antigo e passa a valer como "catalogo".
+  const ROLE_LABEL = { admin:"Administrador", catalogo:"Catálogo", editor:"Catálogo", atendimento:"Atendimento" };
+  const ROLE_TABS = {
+    admin:       ["catalog","products","leads","users"],
+    catalogo:    ["catalog","products","leads"],
+    editor:      ["catalog","products","leads"],
+    atendimento: ["leads"],
+  };
+  function roleLabel(r){ return ROLE_LABEL[r] || r || ""; }
+  function can(tab){ return (ROLE_TABS[me.role] || []).includes(tab); }
+
   function bootApp(){
     $("view-loading").style.display="none";
     show("view-app");
     $("meName").textContent = me.name || me.email;
     $("meEmail").textContent = me.name ? me.email : "";
-    $("mePill").textContent = me.role; $("mePill").className = "pill "+me.role;
+    $("mePill").textContent = roleLabel(me.role); $("mePill").className = "pill "+me.role;
     document.querySelectorAll(".admin-only").forEach(el => el.style.display = (me.role==="admin"?"":"none"));
+
+    // Permissões: cada papel só enxerga (e só carrega) as abas liberadas
+    const allowed = ROLE_TABS[me.role] || ["leads"];
+    document.querySelectorAll(".tab").forEach(t => { t.style.display = allowed.includes(t.dataset.tab) ? "" : "none"; });
+    const firstTab = document.querySelector('.tab[data-tab="' + allowed[0] + '"]');
+    firstTab.classList.add("active"); $("panel-" + allowed[0]).classList.add("active");
 
     document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
       document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
@@ -718,10 +739,7 @@
     document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".overlay").classList.remove("open"));
 
     // Sorteio e Artigos não são usados pela Meccal por enquanto (ver nota no HTML acima).
-    loadCatalog();
-    wireCatalogModal();
-    loadProducts();
-    wireProductModal();
+    if (can("catalog")) { loadCatalog(); wireCatalogModal(); loadProducts(); wireProductModal(); }
     loadLeads();
     $("exportLeadsBtn").onclick = exportLeadsCSV;
     if (me.role === "admin") loadUsers();
@@ -1535,7 +1553,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>
-          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><b>${esc(displayName)}</b><span class="pill ${u.role}">${esc(u.role||"")}</span>${isMe?'<span style="font-size:.7rem;color:#9a9c9d">(você)</span>':""}</div>
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><b>${esc(displayName)}</b><span class="pill ${u.role}">${esc(roleLabel(u.role))}</span>${isMe?'<span style="font-size:.7rem;color:#9a9c9d">(você)</span>':""}</div>
           ${u.name ? `<div style="font-size:.75rem;color:#6b6d6e;margin-top:.15rem">${esc(u.email||"")}</div>` : ""}
         </td>
         <td><div class="act"><button class="icon-btn editUser" ${isMe?"disabled":""}>Editar</button><button class="icon-btn danger rmUser" ${isMe?"disabled":""}>Remover</button></div></td>`;
@@ -1548,7 +1566,7 @@
   }
 
   function wireUserModal(){
-    $("addUser").onclick = () => { clearMsg($("userMsg")); $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="editor"; $("ovUser").classList.add("open"); };
+    $("addUser").onclick = () => { clearMsg($("userMsg")); $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="atendimento"; $("ovUser").classList.add("open"); };
     $("uSave").onclick = createUser;
     $("editUserSave").onclick = async () => {
       if (!editUserId) return;
@@ -1563,7 +1581,7 @@
     editUserId = uid;
     $("editUserName").value = u.name || "";
     $("editUserEmail").value = u.email || "";
-    $("editUserRole").value = u.role || "editor";
+    $("editUserRole").value = u.role === "editor" ? "catalogo" : (u.role || "atendimento");
     clearMsg($("editUserMsg"));
     $("ovEditUser").classList.add("open");
   }
@@ -1594,7 +1612,7 @@
       sec = null;
 
       $("ovUser").classList.remove("open");
-      $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="editor";
+      $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="atendimento";
       clearMsg($("userMsg"));
       loadUsers();
     } catch(e) {
