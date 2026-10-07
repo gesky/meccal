@@ -475,6 +475,17 @@
         <div class="thumbs-edit" id="catThumb"></div>
       </div>
       <div class="fld">
+        <label>Fotos adicionais (até 4, aparecem na galeria da página da máquina)</label>
+        <div class="uploader" id="catGalZone"><div class="hint">Clique para adicionar fotos (JPG/PNG)</div><input type="file" id="catGalFile" accept="image/*" multiple></div>
+        <div class="prog" id="catGalProg"><div class="bar"></div></div>
+        <div class="thumbs-edit" id="catGalThumbs"></div>
+      </div>
+      <div class="fld">
+        <label>Vídeos, GIFs e outras mídias (um link ou caminho por linha)</label>
+        <textarea id="catMedia" rows="4" style="resize:vertical; font-family:var(--font-sans)" placeholder="Um por linha. Aceita:&#10;https://www.youtube.com/watch?v=XXXXXXXXXXX (YouTube)&#10;https://vimeo.com/123456789 (Vimeo)&#10;img/maquinas/mec-70-funcionando.mp4 (vídeo enviado ao site)&#10;img/maquinas/mec-70.gif (GIF ou foto enviada ao site)"></textarea>
+        <div class="hint" style="font-size:12px;color:#9a9c9d;margin-top:.35rem">Para vídeo/GIF próprio: coloque o arquivo na pasta <code>img/maquinas/</code> do site e escreva o caminho aqui. Prefira YouTube para vídeos longos.</div>
+      </div>
+      <div class="fld">
         <label>Descrição completa (exibida na página de detalhes)</label>
         <textarea id="catDescription" rows="5" style="resize:vertical; font-family:var(--font-sans)" placeholder="Descreva a máquina. Quebras de linha (Enter) criam novos parágrafos na página."></textarea>
       </div>
@@ -1144,6 +1155,7 @@
         <td><span class="badge-status ${status}">${status}</span></td>
         <td>
           <div class="act">
+            <a class="icon-btn" href="../maquina.html?id=${encodeURIComponent(a.id)}" target="_blank" rel="noopener" style="text-decoration:none">Ver página</a>
             <button class="icon-btn edit-cat" data-id="${a.id}">Editar</button>
             ${status !== "arquivado"
               ? `<button class="icon-btn archive-cat" data-id="${a.id}">Arquivar</button>`
@@ -1180,6 +1192,9 @@
     $("catDescription").value = a.description || "";
     $("catSpecs").value = a.specs || "";
     $("catStatus").value = a.status || "rascunho";
+    $("catMedia").value = a.media || "";
+    catalogGallery = Array.isArray(a.gallery) ? a.gallery.slice(0, 4) : [];
+    renderCatalogGallery();
     catalogCoverUrl = a.imageUrl || "";
     $("catThumb").innerHTML = catalogCoverUrl
       ? `<div class="t"><img src="${imgSrc(catalogCoverUrl)}"><button class="del" type="button">×</button></div>`
@@ -1201,10 +1216,14 @@
       description: $("catDescription").value.trim(),
       specs: $("catSpecs").value.trim(),
       imageUrl: catalogCoverUrl,
+      gallery: catalogGallery,
+      media: $("catMedia").value.trim(),
       status: $("catStatus").value,
       updatedAt: ts(),
       updatedBy: me.email,
     };
+    // Limite do Firestore: ~1 MB por documento (as fotos ficam dentro dele)
+    if (JSON.stringify(data).length > 950 * 1024) return msg($("catMsg"), "As fotos deixaram o cadastro grande demais. Remova alguma foto adicional ou use o campo de links (caminho de arquivo no site).", "err");
     try {
       if ($("catId").value) await db.collection("maquinas").doc($("catId").value).update(data);
       else await db.collection("maquinas").add({ ...data, createdAt: ts(), createdBy: me.email });
@@ -1239,7 +1258,22 @@
     loadCatalog();
   }
 
+  let catalogGallery = [];
+  function renderCatalogGallery(){
+    $("catGalThumbs").innerHTML = catalogGallery.map((u, i) => `<div class="t"><img src="${imgSrc(u)}"><button class="del" type="button" data-i="${i}">×</button></div>`).join("");
+    $("catGalThumbs").querySelectorAll(".del").forEach(b => b.onclick = () => { catalogGallery.splice(+b.dataset.i, 1); renderCatalogGallery(); });
+  }
+
   function wireCatalogModal(){
+    $("catGalZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("catGalFile").click(); };
+    $("catGalFile").onchange = async (e) => {
+      const files = Array.from(e.target.files);
+      e.target.value = "";
+      for (const f of files) {
+        if (catalogGallery.length >= 4) { alert("Máximo de 4 fotos adicionais."); break; }
+        await uploadCoverImage(f, $("catGalProg"), (url) => { catalogGallery.push(url); renderCatalogGallery(); });
+      }
+    };
     $("importCatalog").onclick = importCatalogSeed;
     $("addCatalogItem").onclick = () => openCatalogItem(null, {});
     $("catSave").onclick = saveCatalogItem;
