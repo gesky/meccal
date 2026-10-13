@@ -69,6 +69,15 @@
   .pill { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; padding: .2rem .55rem; border-radius: 999px; border: 1px solid var(--admin-border); color: #6b6d6e; }
   .pill.admin { background: var(--blue); color: #fff; border-color: var(--blue); }
   .pill.editor, .pill.catalogo { color: var(--blue); border-color: var(--blue); background: #eef3fa; }
+  .perm-grid { display: grid; gap: .5rem; }
+  .fld .perm-item { display: flex; gap: .7rem; align-items: flex-start; padding: .65rem .8rem; margin: 0; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; background: #fff; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: .875rem; color: var(--text); }
+  .fld .perm-item:hover { border-color: var(--blue); }
+  .fld .perm-item input { width: 16px; height: 16px; padding: 0; margin: .2rem 0 0; accent-color: var(--blue); flex: 0 0 auto; }
+  .perm-item span { display: block; }
+  .perm-item b { display: block; font-size: .875rem; font-weight: 700; }
+  .perm-item small { display: block; font-size: .75rem; color: #6b6d6e; margin-top: .1rem; }
+  .perm-chips { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .35rem; }
+  .perm-chip { font-size: 10px; letter-spacing: .04em; text-transform: uppercase; font-weight: 700; padding: .15rem .5rem; border-radius: 999px; background: #eef3fa; color: var(--blue); }
   .pill.atendimento { color: #b55400; border-color: var(--orange, #FE7900); background: #fff4e8; }
 
   .admin-shell { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
@@ -254,7 +263,7 @@
 <div id="view-denied" class="center-screen" style="display:none">
   <div class="auth-card">
     <h1>Sem permissão de acesso</h1>
-    <p class="muted">Sua conta está autenticada, mas ainda não tem uma permissão atribuída. Peça a um administrador para liberar seu acesso.</p>
+    <p class="muted">Sua conta está autenticada, mas ainda não tem nenhum menu liberado. Peça a um administrador para liberar seu acesso.</p>
     <button class="btn btn-outline-blue" id="denyLogout" style="margin-top:1rem">Sair</button>
   </div>
 </div>
@@ -598,12 +607,13 @@
       <div class="fld"><label>Nome *</label><input id="uName" type="text" placeholder="Nome completo"></div>
       <div class="fld"><label>E-mail *</label><input id="uEmail" type="email" placeholder="email@meccal.com.br" autocomplete="off"></div>
       <div class="fld"><label>Senha *</label><input id="uPass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
-      <div class="fld"><label>Permissão *</label>
-        <select id="uRole">
-          <option value="atendimento">Atendimento: só Mensagens</option>
-          <option value="catalogo">Catálogo: Máquinas, Produtos e Mensagens</option>
-          <option value="admin">Administrador: acesso total</option>
-        </select>
+      <div class="fld"><label>Acesso aos menus *</label>
+        <div class="perm-grid" id="uPerms">
+          <label class="perm-item"><input type="checkbox" data-perm="mensagens"><span><b>Mensagens</b><small>Contatos recebidos pelo site</small></span></label>
+          <label class="perm-item"><input type="checkbox" data-perm="maquinas"><span><b>Máquinas</b><small>Cadastrar e editar o catálogo de máquinas</small></span></label>
+          <label class="perm-item"><input type="checkbox" data-perm="produtos"><span><b>Produtos</b><small>Cadastrar e editar peças de reposição</small></span></label>
+          <label class="perm-item"><input type="checkbox" data-perm="usuarios"><span><b>Usuários &amp; Permissões</b><small>Criar usuários e definir o acesso de cada um</small></span></label>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -621,12 +631,13 @@
       <div id="editUserMsg" class="msg"></div>
       <div class="fld"><label>Nome *</label><input id="editUserName" type="text" placeholder="Nome completo"></div>
       <div class="fld"><label>E-mail</label><input id="editUserEmail" type="email" disabled style="background:#f0f0f0;color:#6b6d6e"></div>
-      <div class="fld"><label>Permissão *</label>
-        <select id="editUserRole">
-          <option value="atendimento">Atendimento: só Mensagens</option>
-          <option value="catalogo">Catálogo: Máquinas, Produtos e Mensagens</option>
-          <option value="admin">Administrador: acesso total</option>
-        </select>
+      <div class="fld"><label>Acesso aos menus *</label>
+        <div class="perm-grid" id="editUserPerms">
+          <label class="perm-item"><input type="checkbox" data-perm="mensagens"><span><b>Mensagens</b><small>Contatos recebidos pelo site</small></span></label>
+          <label class="perm-item"><input type="checkbox" data-perm="maquinas"><span><b>Máquinas</b><small>Cadastrar e editar o catálogo de máquinas</small></span></label>
+          <label class="perm-item"><input type="checkbox" data-perm="produtos"><span><b>Produtos</b><small>Cadastrar e editar peças de reposição</small></span></label>
+          <label class="perm-item"><input type="checkbox" data-perm="usuarios"><span><b>Usuários &amp; Permissões</b><small>Criar usuários e definir o acesso de cada um</small></span></label>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
@@ -693,10 +704,11 @@
     if (!user) { $("view-loading").style.display="none"; showFlex("view-login"); return; }
     try {
       const snap = await db.collection("users").doc(user.uid).get();
-      if (!snap.exists || !MC.ROLES.includes(snap.data().role)) {
+      const perms = snap.exists ? effectivePerms(snap.data()) : [];
+      if (!perms.length) {
         $("view-loading").style.display="none"; showFlex("view-denied"); return;
       }
-      me = { uid:user.uid, email:user.email, role:snap.data().role, name:snap.data().name||"" };
+      me = { uid:user.uid, email:user.email, role:snap.data().role, perms, name:snap.data().name||"" };
       bootApp();
     } catch(e){ $("view-loading").style.display="none"; showFlex("view-login"); msg($("loginMsg"), "Falha ao verificar permissão.", "err"); }
   });
@@ -717,28 +729,34 @@
   $("logoutBtn").onclick = () => auth.signOut();
   $("denyLogout").onclick = () => auth.signOut();
 
-  // Papéis: admin (tudo), catalogo (máquinas, produtos, mensagens), atendimento (só mensagens).
-  // "editor" é o papel antigo e passa a valer como "catalogo".
-  const ROLE_LABEL = { admin:"Administrador", catalogo:"Catálogo", editor:"Catálogo", atendimento:"Atendimento" };
-  const ROLE_TABS = {
-    admin:       ["catalog","products","leads","users"],
-    catalogo:    ["catalog","products","leads"],
-    editor:      ["catalog","products","leads"],
-    atendimento: ["leads"],
-  };
-  function roleLabel(r){ return ROLE_LABEL[r] || r || ""; }
-  function can(tab){ return (ROLE_TABS[me.role] || []).includes(tab); }
+  // Permissões por menu. Cada usuário tem uma lista "perms" no documento (users/{uid}).
+  // Contas antigas (só com "role") continuam valendo: admin = tudo, catalogo/editor = máquinas,
+  // produtos e mensagens, atendimento = mensagens.
+  const ALL_PERMS = ["mensagens","maquinas","produtos","usuarios"];
+  const PERM_LABEL = { mensagens:"Mensagens", maquinas:"Máquinas", produtos:"Produtos", usuarios:"Usuários & Permissões" };
+  const TAB_PERM = { catalog:"maquinas", products:"produtos", leads:"mensagens", users:"usuarios" };
+  const TAB_ORDER = ["catalog","products","leads","users"];
+  function effectivePerms(u){
+    if (Array.isArray(u.perms)) return ALL_PERMS.filter(p => u.perms.includes(p));
+    if (u.role === "admin") return ALL_PERMS.slice();
+    if (u.role === "catalogo" || u.role === "editor") return ["mensagens","maquinas","produtos"];
+    if (u.role === "atendimento") return ["mensagens"];
+    return [];
+  }
+  function can(tab){ return me.perms.includes(TAB_PERM[tab]); }
+  function accessLabel(perms){ return perms.length === ALL_PERMS.length ? "Administrador" : "Equipe"; }
+  function readPerms(boxId){ return Array.from($(boxId).querySelectorAll("input[data-perm]:checked")).map(i => i.dataset.perm); }
+  function writePerms(boxId, perms){ $(boxId).querySelectorAll("input[data-perm]").forEach(i => { i.checked = perms.includes(i.dataset.perm); }); }
 
   function bootApp(){
     $("view-loading").style.display="none";
     show("view-app");
     $("meName").textContent = me.name || me.email;
     $("meEmail").textContent = me.name ? me.email : "";
-    $("mePill").textContent = roleLabel(me.role); $("mePill").className = "pill "+me.role;
-    document.querySelectorAll(".admin-only").forEach(el => el.style.display = (me.role==="admin"?"":"none"));
+    $("mePill").textContent = accessLabel(me.perms); $("mePill").className = "pill " + (me.perms.length === ALL_PERMS.length ? "admin" : "catalogo");
 
-    // Permissões: cada papel só enxerga (e só carrega) as abas liberadas
-    const allowed = ROLE_TABS[me.role] || ["leads"];
+    // Cada usuário só enxerga (e só carrega) os menus liberados para ele
+    const allowed = TAB_ORDER.filter(can);
     document.querySelectorAll(".tab").forEach(t => { t.style.display = allowed.includes(t.dataset.tab) ? "" : "none"; });
     const firstTab = document.querySelector('.tab[data-tab="' + allowed[0] + '"]');
     firstTab.classList.add("active"); $("panel-" + allowed[0]).classList.add("active");
@@ -752,10 +770,11 @@
     document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest(".overlay").classList.remove("open"));
 
     // Sorteio e Artigos não são usados pela Meccal por enquanto (ver nota no HTML acima).
-    if (can("catalog")) { loadCatalog(); wireCatalogModal(); loadProducts(); wireProductModal(); }
-    loadLeads();
-    $("exportLeadsBtn").onclick = exportLeadsCSV;
-    if (me.role === "admin") loadUsers();
+    if (can("catalog")) { loadCatalog(); wireCatalogModal(); }
+    if (can("products")) { loadProducts(); wireProductModal(); }
+    if (can("leads")) loadLeads();
+    if (can("leads")) $("exportLeadsBtn").onclick = exportLeadsCSV;
+    if (can("users")) loadUsers();
     wireUserModal();
 
     document.querySelectorAll("#panel-products .status-tab").forEach(t => t.onclick = () => {
@@ -1601,8 +1620,9 @@
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>
-          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><b>${esc(displayName)}</b><span class="pill ${u.role}">${esc(roleLabel(u.role))}</span>${isMe?'<span style="font-size:.7rem;color:#9a9c9d">(você)</span>':""}</div>
+          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><b>${esc(displayName)}</b>${isMe?'<span style="font-size:.7rem;color:#9a9c9d">(você)</span>':""}</div>
           ${u.name ? `<div style="font-size:.75rem;color:#6b6d6e;margin-top:.15rem">${esc(u.email||"")}</div>` : ""}
+          <div class="perm-chips">${(effectivePerms(u).map(p => `<span class="perm-chip">${esc(PERM_LABEL[p])}</span>`).join("")) || '<span style="font-size:.75rem;color:#c0392b">Sem acesso</span>'}</div>
         </td>
         <td><div class="act"><button class="icon-btn editUser" ${isMe?"disabled":""}>Editar</button><button class="icon-btn danger rmUser" ${isMe?"disabled":""}>Remover</button></div></td>`;
       if (!isMe) {
@@ -1614,13 +1634,15 @@
   }
 
   function wireUserModal(){
-    $("addUser").onclick = () => { clearMsg($("userMsg")); $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="atendimento"; $("ovUser").classList.add("open"); };
+    $("addUser").onclick = () => { clearMsg($("userMsg")); $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; writePerms("uPerms", ["mensagens"]); $("ovUser").classList.add("open"); };
     $("uSave").onclick = createUser;
     $("editUserSave").onclick = async () => {
       if (!editUserId) return;
-      const name = $("editUserName").value.trim(), role = $("editUserRole").value;
+      const name = $("editUserName").value.trim(), perms = readPerms("editUserPerms");
       if (!name) return msg($("editUserMsg"), "Informe o nome.", "err");
-      try { await db.collection("users").doc(editUserId).update({ name, role, updatedAt: ts(), updatedBy: me.email }); $("ovEditUser").classList.remove("open"); loadUsers(); }
+      if (!perms.length) return msg($("editUserMsg"), "Marque pelo menos um menu de acesso.", "err");
+      const role = perms.length === ALL_PERMS.length ? "admin" : "equipe";
+      try { await db.collection("users").doc(editUserId).update({ name, perms, role, updatedAt: ts(), updatedBy: me.email }); $("ovEditUser").classList.remove("open"); loadUsers(); }
       catch(e) { msg($("editUserMsg"), e.message, "err"); }
     };
   }
@@ -1629,7 +1651,7 @@
     editUserId = uid;
     $("editUserName").value = u.name || "";
     $("editUserEmail").value = u.email || "";
-    $("editUserRole").value = u.role === "editor" ? "catalogo" : (u.role || "atendimento");
+    writePerms("editUserPerms", effectivePerms(u));
     clearMsg($("editUserMsg"));
     $("ovEditUser").classList.add("open");
   }
@@ -1641,8 +1663,10 @@
   }
 
   async function createUser(){
-    const name = $("uName").value.trim(), email = $("uEmail").value.trim().toLowerCase(), pass = $("uPass").value, role = $("uRole").value;
+    const name = $("uName").value.trim(), email = $("uEmail").value.trim().toLowerCase(), pass = $("uPass").value, perms = readPerms("uPerms");
     if (!name || !email || pass.length < 6) return msg($("userMsg"), "Preencha tudo (senha mínima 6 caracteres).", "err");
+    if (!perms.length) return msg($("userMsg"), "Marque pelo menos um menu de acesso.", "err");
+    const role = perms.length === ALL_PERMS.length ? "admin" : "equipe";
     $("uSave").disabled = true;
     let sec = null;
     try {
@@ -1653,14 +1677,14 @@
 
       const cred = await sec.auth().createUserWithEmailAndPassword(email, pass);
       await db.collection("users").doc(cred.user.uid).set({
-        name, email, role, createdAt: ts(), createdBy: me.email,
+        name, email, role, perms, createdAt: ts(), createdBy: me.email,
       });
       await sec.auth().signOut();
       await sec.delete();
       sec = null;
 
       $("ovUser").classList.remove("open");
-      $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; $("uRole").value="atendimento";
+      $("uName").value=""; $("uEmail").value=""; $("uPass").value=""; writePerms("uPerms", ["mensagens"]);
       clearMsg($("userMsg"));
       loadUsers();
     } catch(e) {

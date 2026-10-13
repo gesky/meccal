@@ -42,34 +42,41 @@
         rules_version = '2';
         service cloud.firestore {
           match /databases/{database}/documents {
-            function papel() {
-              return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+            function dados() {
+              return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
             }
-            function ehAdmin()   { return request.auth != null && papel() == "admin"; }
-            function ehCatalogo(){ return request.auth != null && papel() in ["admin", "catalogo", "editor"]; }
-            function ehEquipe()  { return request.auth != null && papel() in ["admin", "catalogo", "editor", "atendimento"]; }
+            // tem("maquinas"), tem("produtos"), tem("mensagens") ou tem("usuarios")
+            function tem(p) {
+              return request.auth != null && (
+                dados().role == "admin"
+                || p in dados().get("perms", [])
+                || (p in ["maquinas", "produtos", "mensagens"] && dados().role in ["catalogo", "editor"])
+                || (p == "mensagens" && dados().role == "atendimento")
+              );
+            }
 
             match /users/{userId} {
               allow read: if request.auth != null;
-              allow write: if ehAdmin();
+              allow write: if tem("usuarios");
             }
             match /maquinas/{docId} {
               allow read: if true;
-              allow write: if ehCatalogo();
+              allow write: if tem("maquinas");
             }
             match /produtos/{docId} {
               allow read: if true;
-              allow write: if ehCatalogo();
+              allow write: if tem("produtos");
             }
             match /leads/{docId} {
               allow create: if true;
-              allow read, update, delete: if ehEquipe();
+              allow read, update, delete: if tem("mensagens");
             }
           }
         }
 
-   Papéis: admin (acesso total), catalogo (Máquinas, Produtos e Mensagens)
-   e atendimento (só Mensagens). O papel antigo "editor" vale como "catalogo".
+   Permissões: cada usuário (documento em users) tem a lista "perms" com
+   os menus liberados: "mensagens", "maquinas", "produtos" e "usuarios".
+   Contas antigas só com "role" continuam funcionando (admin = tudo).
 
    Pronto — depois disso, atualize a página do painel (admin/index.html)
    e a tela de configuração deve sumir, dando lugar à tela de login.
@@ -104,7 +111,7 @@ const IMAGE_MODE = "inline";
     auth: firebase.auth(),
     db: firebase.firestore(),
     storage: IMAGE_MODE === "storage" ? firebase.storage() : null,
-    ROLES: ["admin", "catalogo", "atendimento", "editor"],
+    ROLES: ["admin", "equipe", "catalogo", "atendimento", "editor"],
     IMAGE_MODE: IMAGE_MODE,
   };
 })();
