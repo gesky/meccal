@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var wrap = root.querySelector('.wrap');
 
   var WHATSAPP_NUMBER = '5514997758195';
-  var FAMILIA_LABEL = { 'metalurgia': 'Metalurgia', 'construcao-civil': 'Construção Civil' };
+  var FAMILIA_LABEL = { 'metalurgia': 'Metalurgia', 'construcao-civil': 'Construção Civil', 'ambas': 'Metalurgia e Construção Civil' };
   var SELO_LABEL = { 'seminovo': 'Seminovo', 'promocao': 'Promoção' };
   var BACK = '<a class="md-back" href="maquinas.html">&larr; Todas as máquinas</a>';
 
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
       var list = [];
       snap.forEach(function (d) { if (d.id !== m.id) list.push(Object.assign({ id: d.id }, d.data())); });
       list.sort(function (a, b) {
-        function score(x) { return (x.tipo && x.tipo === m.tipo ? 2 : 0) + (x.familia === m.familia ? 1 : 0); }
+        function score(x) { return (x.tipo && x.tipo === m.tipo ? 2 : 0) + (x.familia === m.familia || x.familia === 'ambas' || m.familia === 'ambas' ? 1 : 0); }
         return score(b) - score(a);
       });
       list = list.slice(0, 4);

@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var filtersWrap = document.getElementById('maq-filters');
   if (!grid) return; // not on this page
 
-  var FAMILIA_LABEL = { 'metalurgia': 'Metalurgia', 'construcao-civil': 'Construção Civil' };
+  var FAMILIA_LABEL = { 'metalurgia': 'Metalurgia', 'construcao-civil': 'Construção Civil', 'ambas': 'Metalurgia e Construção Civil' };
   var SELO_LABEL = { 'seminovo': 'Seminovo', 'promocao': 'Promoção' };
 
   var allMachines = [];
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function renderGrid() {
     var list = currentFamilia === 'todas'
       ? allMachines
-      : allMachines.filter(function (m) { return m.familia === currentFamilia; });
+      : allMachines.filter(function (m) { return m.familia === currentFamilia || m.familia === 'ambas'; });
 
     if (!list.length) {
       grid.innerHTML = '<p class="maq-empty">Nenhuma máquina publicada nessa categoria ainda. Fale com a gente pelo WhatsApp que a gente ajuda a encontrar o modelo certo.</p>';
