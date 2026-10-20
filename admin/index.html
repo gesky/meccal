@@ -76,6 +76,29 @@
   .perm-item span { display: block; }
   .perm-item b { display: block; font-size: .875rem; font-weight: 700; }
   .perm-item small { display: block; font-size: .75rem; color: #6b6d6e; margin-top: .1rem; }
+  .star-btn { border: none; background: none; font-size: 1.35rem; line-height: 1; cursor: pointer; color: #c4c4c4; padding: .15rem .3rem; border-radius: 6px; }
+  .star-btn:hover { color: #FE7900; background: #fff4e8; }
+  .star-btn.on { color: #FE7900; }
+  .star-btn:disabled { opacity: .35; cursor: not-allowed; background: none; color: #c4c4c4; }
+  .feat-box { border: 1px solid var(--admin-border); border-radius: 12px; background: #fff; padding: 1.1rem 1.25rem 1.25rem; margin-bottom: 1.75rem; }
+  .feat-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+  .feat-head h3 { margin: 0; font-size: 1.05rem; }
+  .feat-head p { margin: .2rem 0 0; font-size: .8125rem; color: #6b6d6e; }
+  .feat-count { font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: .3rem .7rem; border-radius: 999px; background: #eef3fa; color: var(--blue); white-space: nowrap; }
+  .feat-count.warn { background: #fff4e8; color: #b55400; }
+  .feat-warn { margin-top: .85rem; padding: .6rem .8rem; border-radius: 8px; background: #fff4e8; color: #8a4300; font-size: .8125rem; }
+  .feat-list { list-style: none; margin: .9rem 0 0; padding: 0; display: grid; gap: .5rem; }
+  .feat-item { display: flex; align-items: center; gap: .75rem; padding: .5rem .65rem; border: 1px solid var(--admin-border); border-radius: 10px; background: #fafafa; cursor: grab; }
+  .feat-item.dragging { opacity: .4; }
+  .feat-item.over { border-color: var(--blue); background: #eef3fa; }
+  .feat-grip { color: #b5b7b8; font-size: 1rem; letter-spacing: -2px; user-select: none; }
+  .feat-pos { width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--blue); color: #fff; font-size: .75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .feat-item img, .feat-item .feat-noimg { width: 3.2rem; height: 2.4rem; object-fit: cover; border-radius: 6px; background: #eee; flex: 0 0 auto; }
+  .feat-name { flex: 1; min-width: 0; }
+  .feat-name b { display: block; font-size: .875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .feat-name small { color: #6b6d6e; font-size: .75rem; }
+  .feat-arrows { display: flex; gap: .25rem; }
+  .feat-arrows .icon-btn { padding: .25rem .55rem; }
   .perm-chips { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .35rem; }
   .perm-chip { font-size: 10px; letter-spacing: .04em; text-transform: uppercase; font-weight: 700; padding: .15rem .5rem; border-radius: 999px; background: #eef3fa; color: var(--blue); }
   .pill.atendimento { color: #b55400; border-color: var(--orange, #FE7900); background: #fff4e8; }
@@ -309,8 +332,10 @@
           <h2>Máquinas do catálogo</h2>
           <p class="sub">Cadastre, edite, arquive ou exclua as máquinas exibidas em maquinas.html.</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-sm-solid" id="importCatalog" style="background:#fff;color:#0166AC;border:1px solid #0166AC">Importar catálogo dos PDFs</button><button class="btn-sm-solid" id="addCatalogItem">+ Nova máquina</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-sm-solid" id="addCatalogItem">+ Nova máquina</button></div>
       </div>
+
+      <div id="featuredBox"></div>
 
       <div class="status-tabs">
         <button class="status-tab active" data-cat-status="todos">Todas</button>
@@ -323,6 +348,7 @@
       <table class="tbl">
         <thead>
           <tr>
+            <th style="width:2.75rem" title="Destaque na Home"></th>
             <th style="width:4.5rem"></th>
             <th>Modelo</th>
             <th>Família</th>
@@ -648,8 +674,6 @@
 </div>
 
 <script src="js/firebase-config.js"></script>
-<script src="js/catalogo-seed.js"></script>
-<script src="js/catalogo-seed-metalurgia.js"></script>
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);
@@ -1145,24 +1169,130 @@
      ============================================================ */
   async function loadCatalog(){
     const rows = $("catalogRows");
-    rows.innerHTML = `<tr><td class="empty-row" colspan="7">Carregando máquinas…</td></tr>`;
+    rows.innerHTML = `<tr><td class="empty-row" colspan="8">Carregando máquinas…</td></tr>`;
     try {
       const snap = await db.collection("maquinas").orderBy("createdAt", "desc").get();
       catalogCache = [];
       snap.forEach(doc => catalogCache.push({ id: doc.id, ...doc.data() }));
       renderCatalog();
     } catch(e) {
-      rows.innerHTML = `<tr><td class="empty-row" colspan="7">Erro ao carregar máquinas: ${esc(e.message)}</td></tr>`;
+      rows.innerHTML = `<tr><td class="empty-row" colspan="8">Erro ao carregar máquinas: ${esc(e.message)}</td></tr>`;
     }
   }
 
   const FAMILIA_LABEL = { "metalurgia":"Metalurgia", "construcao-civil":"Construção Civil", "ambas":"Metalurgia e Construção Civil" };
   const SELO_LABEL = { "seminovo":"Seminovo", "promocao":"Promoção" };
 
+  /* ---------- Máquinas em destaque (Home) ---------- */
+  const MIN_FEATURED = 3, MAX_FEATURED = 8;
+  function featuredList(){
+    return catalogCache.filter(a => a.destaque === true && (a.status||"rascunho") === "publicado")
+      .sort((a, b) => (a.destaqueOrdem || 999) - (b.destaqueOrdem || 999));
+  }
+
+  function renderFeatured(){
+    const box = $("featuredBox"); if (!box) return;
+    const feat = featuredList(), n = feat.length;
+    const ok = n >= MIN_FEATURED;
+    const warn = !ok ? `<div class="feat-warn">${n === 0 ? "Nenhuma máquina em destaque." : "Faltam " + (MIN_FEATURED - n) + " máquina(s) para completar o mínimo."} Marque pelo menos ${MIN_FEATURED} com a estrela ☆ na lista abaixo. Enquanto isso, a seção “Máquinas em destaque” não aparece na Home.</div>` : "";
+    const items = feat.map((a, i) => `
+      <li class="feat-item" draggable="true" data-id="${a.id}">
+        <span class="feat-grip" title="Arraste para reordenar">⋮⋮</span>
+        <span class="feat-pos">${i + 1}</span>
+        ${a.imageUrl ? `<img src="${esc(imgSrc(a.imageUrl))}" alt="">` : `<span class="feat-noimg"></span>`}
+        <div class="feat-name"><b>${esc(a.title || "(sem modelo)")}</b><small>${esc(FAMILIA_LABEL[a.familia] || "")}${a.tipo ? " · " + esc(a.tipo) : ""}</small></div>
+        <div class="feat-arrows">
+          <button class="icon-btn feat-up" data-id="${a.id}" ${i === 0 ? "disabled" : ""} title="Subir">↑</button>
+          <button class="icon-btn feat-down" data-id="${a.id}" ${i === n - 1 ? "disabled" : ""} title="Descer">↓</button>
+          <button class="star-btn on feat-off" data-id="${a.id}" title="Remover dos destaques">★</button>
+        </div>
+      </li>`).join("");
+    box.innerHTML = `<div class="feat-box">
+      <div class="feat-head">
+        <div><h3>★ Máquinas em destaque na Home</h3><p>Arraste ou use as setas para definir a ordem em que aparecem no site. Mínimo ${MIN_FEATURED}, máximo ${MAX_FEATURED}.</p></div>
+        <span class="feat-count ${ok ? "" : "warn"}">${n} de ${MAX_FEATURED}</span>
+      </div>
+      ${warn}
+      ${n ? `<ol class="feat-list" id="featList">${items}</ol>` : ""}
+    </div>`;
+
+    box.querySelectorAll(".feat-off").forEach(b => b.onclick = () => toggleFeatured(b.dataset.id));
+    box.querySelectorAll(".feat-up").forEach(b => b.onclick = () => moveFeatured(b.dataset.id, -1));
+    box.querySelectorAll(".feat-down").forEach(b => b.onclick = () => moveFeatured(b.dataset.id, 1));
+
+    // Arrastar e soltar
+    let dragId = null;
+    box.querySelectorAll(".feat-item").forEach(li => {
+      li.ondragstart = (e) => { dragId = li.dataset.id; li.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", dragId); } catch(_){} };
+      li.ondragend = () => { li.classList.remove("dragging"); box.querySelectorAll(".feat-item.over").forEach(x => x.classList.remove("over")); };
+      li.ondragover = (e) => { e.preventDefault(); li.classList.add("over"); };
+      li.ondragleave = () => li.classList.remove("over");
+      li.ondrop = (e) => {
+        e.preventDefault(); li.classList.remove("over");
+        if (!dragId || dragId === li.dataset.id) return;
+        const ids = featuredList().map(a => a.id).filter(id => id !== dragId);
+        ids.splice(ids.indexOf(li.dataset.id), 0, dragId);
+        applyFeaturedOrder(ids);
+      };
+    });
+  }
+
+  // Grava a nova ordem (1..n) e atualiza a tela na hora
+  async function applyFeaturedOrder(ids){
+    ids.forEach((id, i) => { const a = catalogCache.find(x => x.id === id); if (a) a.destaqueOrdem = i + 1; });
+    renderCatalog();
+    try {
+      const batch = db.batch();
+      ids.forEach((id, i) => batch.update(db.collection("maquinas").doc(id), { destaqueOrdem: i + 1, updatedAt: ts(), updatedBy: me.email }));
+      await batch.commit();
+    } catch(e) { alert("Erro ao salvar a ordem: " + e.message); loadCatalog(); }
+  }
+
+  function moveFeatured(id, dir){
+    const ids = featuredList().map(a => a.id);
+    const i = ids.indexOf(id), j = i + dir;
+    if (i < 0 || j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    applyFeaturedOrder(ids);
+  }
+
+  async function toggleFeatured(id){
+    const a = catalogCache.find(x => x.id === id); if (!a) return;
+    const feat = featuredList();
+    const isOn = feat.some(x => x.id === id);
+    try {
+      const batch = db.batch();
+      if (!isOn) {
+        if ((a.status||"rascunho") !== "publicado") return alert("Só máquinas publicadas podem ficar em destaque.");
+        if (feat.length >= MAX_FEATURED) return alert("Máximo de " + MAX_FEATURED + " máquinas em destaque. Remova uma da lista de destaques antes de adicionar outra.");
+        a.destaque = true; a.destaqueOrdem = feat.length + 1;
+        batch.update(db.collection("maquinas").doc(id), { destaque: true, destaqueOrdem: a.destaqueOrdem, updatedAt: ts(), updatedBy: me.email });
+      } else {
+        if (feat.length === MIN_FEATURED) return alert("A Home precisa de no mínimo " + MIN_FEATURED + " máquinas em destaque. Destaque outra máquina antes de remover esta.");
+        a.destaque = false; a.destaqueOrdem = null;
+        batch.update(db.collection("maquinas").doc(id), { destaque: false, destaqueOrdem: null, updatedAt: ts(), updatedBy: me.email });
+        feat.filter(x => x.id !== id).forEach((x, i) => { x.destaqueOrdem = i + 1; batch.update(db.collection("maquinas").doc(x.id), { destaqueOrdem: i + 1 }); });
+      }
+      renderCatalog();
+      await batch.commit();
+    } catch(e) { alert("Erro ao atualizar o destaque: " + e.message); loadCatalog(); }
+  }
+
+  // Tira uma máquina dos destaques (ao arquivar/despublicar) e renumera as demais
+  function clearFeaturedBatch(batch, id){
+    const feat = featuredList();
+    if (!feat.some(x => x.id === id)) return false;
+    batch.update(db.collection("maquinas").doc(id), { destaque: false, destaqueOrdem: null });
+    feat.filter(x => x.id !== id).forEach((x, i) => batch.update(db.collection("maquinas").doc(x.id), { destaqueOrdem: i + 1 }));
+    return true;
+  }
+
   function renderCatalog(){
     const rows = $("catalogRows");
-    const list = catalogCache.filter(a => currentCatalogStatusFilter==="todos" || (a.status||"rascunho")===currentCatalogStatusFilter);
-    if (!list.length) { rows.innerHTML = `<tr><td class="empty-row" colspan="7">Nenhuma máquina encontrada.</td></tr>`; return; }
+    renderFeatured();
+    const featIds = new Set(featuredList().map(a => a.id));
+    const list = catalogCache.filter(a => !featIds.has(a.id) && (currentCatalogStatusFilter==="todos" || (a.status||"rascunho")===currentCatalogStatusFilter));
+    if (!list.length) { rows.innerHTML = `<tr><td class="empty-row" colspan="8">Nenhuma máquina encontrada.</td></tr>`; return; }
     rows.innerHTML = "";
     list.forEach(a => {
       const status = a.status || "rascunho";
@@ -1184,9 +1314,12 @@
             <button class="icon-btn danger del-cat" data-id="${a.id}">Excluir</button>
           </div>
         </td>`;
+      const pub = status === "publicado";
+      tr.insertAdjacentHTML("afterbegin", `<td><button class="star-btn" data-id="${a.id}" ${pub ? "" : "disabled"} title="${pub ? "Destacar na Home" : "Publique a máquina para poder destacá-la"}">☆</button></td>`);
       rows.appendChild(tr);
     });
 
+    rows.querySelectorAll(".star-btn").forEach(b => b.onclick = () => toggleFeatured(b.dataset.id));
     rows.querySelectorAll(".edit-cat").forEach(b => b.onclick = () => {
       const a = catalogCache.find(x => x.id === b.dataset.id);
       openCatalogItem(b.dataset.id, a || {});
@@ -1197,7 +1330,16 @@
   }
 
   async function setCatalogStatus(id, status){
-    try { await db.collection("maquinas").doc(id).update({ status, updatedAt: ts(), updatedBy: me.email }); loadCatalog(); }
+    try {
+      const batch = db.batch();
+      batch.update(db.collection("maquinas").doc(id), { status, updatedAt: ts(), updatedBy: me.email });
+      if (status !== "publicado") {
+        const wasFeat = featuredList().some(x => x.id === id);
+        if (wasFeat && featuredList().length <= MIN_FEATURED && !confirm("Esta máquina está em destaque na Home. Arquivar vai tirá-la dos destaques e a seção da Home deixará de aparecer até você destacar outra. Continuar?")) return;
+        clearFeaturedBatch(batch, id);
+      }
+      await batch.commit(); loadCatalog();
+    }
     catch(e) { alert(e.message); }
   }
 
@@ -1243,6 +1385,7 @@
       updatedAt: ts(),
       updatedBy: me.email,
     };
+    if (data.status !== "publicado") { data.destaque = false; data.destaqueOrdem = null; }
     // Limite do Firestore: ~1 MB por documento (as fotos ficam dentro dele)
     if (JSON.stringify(data).length > 950 * 1024) return msg($("catMsg"), "As fotos deixaram o cadastro grande demais. Remova alguma foto adicional ou use o campo de links (caminho de arquivo no site).", "err");
     try {
@@ -1256,40 +1399,6 @@
 
   // Imagens do catálogo importado ficam em img/ (raiz do site); o admin está em /admin/
   function imgSrc(u){ return (u && !/^(https?:|data:|\/|\.\.\/)/.test(u)) ? "../" + u : u; }
-
-  async function importCatalogSeed(){
-    // Construção civil + metalurgia. Itens com "_atualizar" só alteram campos de máquinas que já existem.
-    const lists = [
-      { items: window.CATALOGO_SEED || [], dias: 0 },
-      { items: window.CATALOGO_SEED_METALURGIA || [], dias: 30 }, // mais antigas: aparecem depois das de construção civil em "Todas"
-    ];
-    const total = lists.reduce((n, l) => n + l.items.length, 0);
-    if (!total) return alert("Lista de máquinas não encontrada (admin/js/catalogo-seed*.js).");
-    if (!confirm("Importar o catálogo (construção civil e metalurgia)?\nMáquinas que já existem (mesmo código) são puladas e nada é sobrescrito.")) return;
-    const btn = $("importCatalog"); btn.disabled = true;
-    let criadas = 0, puladas = 0, atualizadas = 0, n = 0;
-    try {
-      const base = Date.now();
-      for (const lista of lists) {
-        for (let i = 0; i < lista.items.length; i++) {
-          const { id, _atualizar, ...m } = lista.items[i];
-          btn.textContent = "Importando " + (++n) + "/" + total + "…";
-          const ref = db.collection("maquinas").doc(id);
-          const existe = (await ref.get()).exists;
-          if (_atualizar) {
-            if (existe) { await ref.update({ ..._atualizar, updatedAt: ts(), updatedBy: me.email }); atualizadas++; }
-            continue;
-          }
-          if (existe) { puladas++; continue; }
-          await ref.set({ ...m, createdAt: firebase.firestore.Timestamp.fromMillis(base - lista.dias * 86400000 - i * 1000), updatedAt: ts(), createdBy: me.email, updatedBy: me.email });
-          criadas++;
-        }
-      }
-      alert("Pronto! " + criadas + " máquinas criadas, " + puladas + " já existiam" + (atualizadas ? ", " + atualizadas + " atualizadas (família)" : "") + ".");
-    } catch(e) { alert("Erro na importação: " + e.message); }
-    btn.disabled = false; btn.textContent = "Importar catálogo dos PDFs";
-    loadCatalog();
-  }
 
   let catalogGallery = [];
   function renderCatalogGallery(){
@@ -1307,7 +1416,6 @@
         await uploadCoverImage(f, $("catGalProg"), (url) => { catalogGallery.push(url); renderCatalogGallery(); });
       }
     };
-    $("importCatalog").onclick = importCatalogSeed;
     $("addCatalogItem").onclick = () => openCatalogItem(null, {});
     $("catSave").onclick = saveCatalogItem;
     $("catUpZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("catFile").click(); };

@@ -101,55 +101,18 @@
 </section>
 
 <!-- DESTAQUES / PROMOÇÃO -->
-<section id="destaques">
+<section id="destaques" style="display:none;">
   <div class="wrap">
     <div class="center reveal">
       <div class="eyebrow">Direto da fábrica</div>
       <h2>Máquinas em destaque</h2>
-      <p class="lead" style="max-width:640px;margin:0 auto 26px;">Seleção de máquinas com condição especial ou disponibilidade imediata: novas e seminovas revisadas pela Meccal.</p>
+      <p class="lead" style="max-width:640px;margin:0 auto 26px;">Uma seleção da linha Meccal, fabricada em Bauru/SP. Veja a ficha técnica completa e fale direto com a nossa equipe.</p>
     </div>
 
-    <div class="grid-4">
-      <div class="destaque-card reveal reveal-1">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
-            <span class="selo selo-promocao">Promoção</span>
-          </div>
-        <div class="destaque-body">
-          <h3>[Nome do modelo]</h3>
-          <div class="fam">Metalurgia</div>
-          <span class="destaque-cta">Saiba mais →</span>
-        </div>
-      </div>
-      <div class="destaque-card reveal reveal-2">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
-            <span class="selo selo-seminovo">Seminovo</span>
-          </div>
-        <div class="destaque-body">
-          <h3>[Nome do modelo]</h3>
-          <div class="fam">Construção Civil</div>
-          <span class="destaque-cta">Saiba mais →</span>
-        </div>
-      </div>
-      <div class="destaque-card reveal reveal-3">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
-            <span class="selo selo-promocao">Promoção</span>
-          </div>
-        <div class="destaque-body">
-          <h3>[Nome do modelo]</h3>
-          <div class="fam">Metalurgia</div>
-          <span class="destaque-cta">Saiba mais →</span>
-        </div>
-      </div>
-      <div class="destaque-card reveal reveal-4">
-        <div class="destaque-media"><img src="img/maquina-placeholder.jpg" alt="[Nome do modelo]">
-            <span class="selo selo-seminovo">Seminovo</span>
-          </div>
-        <div class="destaque-body">
-          <h3>[Nome do modelo]</h3>
-          <div class="fam">Construção Civil</div>
-          <span class="destaque-cta">Saiba mais →</span>
-        </div>
-      </div>
+    <div class="destaques-grid" id="destaques-grid"></div>
+
+    <div class="center" style="margin-top:36px;">
+      <a href="maquinas.html" class="btn btn-outline">Ver todas as máquinas</a>
     </div>
   </div>
 </section>
@@ -329,7 +292,12 @@
 <a class="whats-float" href="https://api.whatsapp.com/send?phone=5514997758195&text=Ol%C3%A1%2C%20contato%20do%20site%20Meccal.com.br" target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
   <img src="img/whatsapp-icon.webp" alt="">
 </a>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="admin/js/firebase-config.js"></script>
 <script src="js/lenis.min.js"></script>
 <script src="js/main.js"></script>
+<script src="js/home-destaques.js"></script>
 </body>
 </html>
