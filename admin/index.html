@@ -14,7 +14,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Administrativo | Meccal</title>
 
-<link rel="icon" href="../img/logo-meccal.webp" type="image/webp" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" />
@@ -251,6 +250,9 @@
     .raffle-draw-controls .btn-sm-solid, .raffle-draw-controls .icon-btn { width: 100%; justify-content: center; }
   }
 </style>
+  <link rel="icon" href="../favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="../img/favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="../img/favicon/apple-touch-icon.png">
 </head>
 <body>
 
@@ -372,7 +374,6 @@
           <p class="sub">Cadastre as peças exibidas em produtos.html. O botão do site leva ao WhatsApp já citando a peça escolhida.</p>
         </div>
         <button class="btn-sm-solid" id="addProduct">+ Nova peça</button>
-        <button class="btn-sm-solid" id="importProducts" style="background:#FE7900;">Importar catálogo de peças</button>
       </div>
 
       <div class="status-tabs">
@@ -675,7 +676,6 @@
 </div>
 
 <script src="js/firebase-config.js"></script>
-<script src="js/produtos-seed.js"></script>
 <script>
 (function(){
   const $ = (id) => document.getElementById(id);
@@ -1532,26 +1532,6 @@
 
   function wireProductModal(){
     $("addProduct").onclick = () => openProduct(null, {});
-    $("importProducts").onclick = async () => {
-      const list = window.PRODUTOS_SEED || [];
-      if (!list.length) return alert("Lista de peças não encontrada.");
-      if (!confirm("Importar " + list.length + " peças do catálogo?\nPeças que já existem (mesmo código) são puladas.")) return;
-      const btn = $("importProducts"); btn.disabled = true;
-      let criadas = 0, puladas = 0; const base = Date.now();
-      try {
-        for (let i = 0; i < list.length; i++) {
-          const { id, ...p } = list[i];
-          btn.textContent = "Importando " + (i + 1) + "/" + list.length + "…";
-          const ref = db.collection("produtos").doc(id);
-          if ((await ref.get()).exists) { puladas++; continue; }
-          await ref.set({ ...p, description: "", status: "publicado", createdAt: firebase.firestore.Timestamp.fromMillis(base - i * 1000), updatedAt: ts(), createdBy: me.email, updatedBy: me.email });
-          criadas++;
-        }
-        alert("Pronto! " + criadas + " peças criadas, " + puladas + " já existiam.");
-      } catch(e) { alert("Erro na importação: " + e.message); }
-      btn.disabled = false; btn.textContent = "Importar catálogo de peças";
-      loadProducts();
-    };
     $("prodSave").onclick = saveProduct;
     $("prodUpZone").onclick = (e) => { if (e.target.tagName !== "INPUT") $("prodFile").click(); };
     $("prodFile").onchange = (e) => {
