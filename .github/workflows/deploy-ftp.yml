@@ -20,6 +20,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           timeout: 120000
+          log-level: verbose
           server-dir: /www/
           exclude: |
             **/.git*
