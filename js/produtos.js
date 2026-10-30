@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var searchInput = document.getElementById('prod-search');
   if (!grid) return;
 
-  var WHATSAPP_NUMBER = '5514997758195';
+  var WHATSAPP_NUMBER = '5514997758382';
   var all = [];
   var currentCat = '';
 

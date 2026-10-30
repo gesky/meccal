@@ -778,3 +778,22 @@ a.maq-card{display:block;color:inherit;text-decoration:none;cursor:pointer;}
   .footer-col a{display:inline-block;padding:4px 0;}
   .md-back,.md-anchor{display:inline-block;padding:8px 0;}
 }
+
+/* ---------- Botão do header com ícone ---------- */
+.nav-cta{display:inline-flex;align-items:center;gap:8px;}
+.nav-cta-ico{width:16px;height:16px;fill:currentColor;flex:0 0 auto;}
+
+/* ---------- Contato do vendedor de peças ---------- */
+.prod-seller{display:inline-flex;flex-direction:column;gap:2px;margin-top:18px;padding:12px 18px;border:1px solid var(--border);border-radius:var(--r-lg);background:#fff;transition:border-color .2s ease,box-shadow .2s ease;}
+.prod-seller:hover{border-color:var(--blue);box-shadow:0 8px 22px rgba(0,0,0,.06);}
+.prod-seller-lbl{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9a9a9a;}
+.prod-seller-num{display:inline-flex;align-items:center;gap:8px;font-size:17px;font-weight:700;color:var(--ink);}
+.prod-seller-ico{width:18px;height:18px;fill:#25a244;}
+
+/* ---------- Formulário de contato ---------- */
+.form-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;}
+.form-status{margin-top:14px;font-size:14.5px;font-weight:600;min-height:20px;}
+.form-status.ok{color:#1d7a3a;}
+.form-status.err{color:#b3261e;}
+nav.mainnav a.nav-cta{display:inline-flex;align-items:center;gap:8px;}
+@media (max-width:900px){nav.mainnav a.nav-cta{display:flex;justify-content:center;}}

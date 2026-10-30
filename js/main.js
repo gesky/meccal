@@ -129,13 +129,48 @@ document.addEventListener('DOMContentLoaded', function () {
     }, { passive: true });
   }
 
-  // Contact form (simulated)
+  // Formulário de contato: grava a mensagem no Firestore (coleção "leads"),
+  // que aparece no menu Mensagens do admin.
   var form = document.querySelector('#contact-form');
   if (form) {
+    var statusEl = document.getElementById('form-status');
+    var submitBtn = form.querySelector('button[type="submit"]');
+    function setStatus(text, kind) {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      statusEl.className = 'form-status ' + (kind || '');
+    }
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      alert('Formulário será conectado ao envio real na Fase 3. Envio simulado com sucesso.');
-      form.reset();
+      var hp = form.querySelector('#website');
+      if (hp && hp.value) { form.reset(); return; } // campo isca: robô
+      if (!window.MC || !MC.configured || !MC.db) {
+        setStatus('Não foi possível enviar agora. Fale com a gente pelo WhatsApp ou por e-mail.', 'err');
+        return;
+      }
+      var data = {
+        name: form.nome.value.trim().slice(0, 120),
+        email: form.email.value.trim().slice(0, 160),
+        phone: form.telefone.value.trim().slice(0, 40),
+        subject: 'Contato pelo site',
+        message: form.mensagem.value.trim().slice(0, 3000),
+        status: 'novo',
+        archived: false,
+        source: 'site',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      if (!data.name || !data.email || !data.message) { setStatus('Preencha nome, e-mail e mensagem.', 'err'); return; }
+      submitBtn.disabled = true; setStatus('Enviando…', '');
+      MC.db.collection('leads').add(data)
+        .then(function () {
+          form.reset();
+          setStatus('Mensagem enviada! Nossa equipe responde em breve.', 'ok');
+        })
+        .catch(function (err) {
+          console.error(err);
+          setStatus('Não foi possível enviar agora. Tente de novo ou fale com a gente pelo WhatsApp.', 'err');
+        })
+        .then(function () { submitBtn.disabled = false; });
     });
   }
 
